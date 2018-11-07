@@ -11,5 +11,5 @@ def test(path):
 dirpath = "D:\GDrive\Lab II\WEEK 2"
 path = "D:\GDrive\Lab II\Raw Data/1.csv"
 
-# save_data_from_dir(dirpath)
-test(path)
+save_data_from_dir(dirpath)
+# test(path)
