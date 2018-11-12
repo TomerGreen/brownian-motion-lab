@@ -10,6 +10,12 @@ MIN_TRACK_LENGTH = 50
 
 
 def get_distance_sq_data(datafile):
+    """
+    plots time (frames) vs mean distance squared (pixels squared) for given csv file,
+    multiple particles.
+    :param datafile: string
+    :return: void
+    """
     data = pd.read_csv(datafile)
     data = tp.link_df(data, MAX_PIXELS_BW_FRAMES, memory=TRACKING_MEMORY)
     data = tp.filter_stubs(data, MIN_TRACK_LENGTH)
@@ -22,7 +28,11 @@ def get_distance_sq_data(datafile):
 
 
 def get_particle_sq_distance_data(part_data):
-
+    """
+    returns DataFrame containing 'frame_gap' and 'r_sq', mean distance square of single particle
+    :param part_data: DataFrame that contains 'x', 'y' cols, of single particle
+    :return: DataFrame
+    """
     def _get_sq_distance(row):
         return row['x']**2 + row['y']**2
 
@@ -37,6 +47,5 @@ def get_particle_sq_distance_data(part_data):
     return result
 
 
-
 if __name__ == '__main__':
-    get_distance_sq_data('data/1.csv')
+    get_distance_sq_data('D:\GDrive\Lab II\Raw Data\week 2/100%water.csv')
