@@ -62,7 +62,8 @@ def save_data(frame_dir, save_to_dir):
     except OSError:
         pass
     frame_dirname = os.path.basename(frame_dir)
-    out_filepath = save_to_dir + '/' + frame_dirname + '.csv'
+    #out_filepath = save_to_dir + '/' + frame_dirname + '.csv'
+    out_filepath = 'D:\GDrive\Lab II\data' + '/' + frame_dirname + '.csv'
     print("Writing frame data to " + out_filepath)
     data.to_csv(out_filepath)
     #plt.figure()
