@@ -77,7 +77,5 @@ def save_data_from_dir(dirpath):
                 out_dir = extract_frames(root + '/' + filename)
                 save_data(out_dir, RAW_DATA_DIRNAME)
 
-
-
 if __name__ == '__main__':
     save_data_from_dir(VIDEO_DIRNAME)
