@@ -56,6 +56,7 @@ def cancel_avg_velocity_drift(data):
 
 def get_distance_sq_data(datafile):
     data = pd.read_csv(datafile)
+
     data = tp.filter_stubs(data, MIN_TRACK_LENGTH)
     data = cancel_avg_velocity_drift(data)
     print('Found ' + str(data['particle'].nunique()) + ' particles')
@@ -85,5 +86,5 @@ def get_particle_sq_distance_data(part_data):
 
 
 if __name__ == '__main__':
-    data = pd.read_csv('data/1.csv')
+    data = pd.read_csv('0')
     cancel_avg_velocity_drift(data)

@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 from sklearn import linear_model
 import numpy as np
 
+
 def get_regression(part_sum):
     """
     per particle:
@@ -22,4 +23,7 @@ def get_regression(part_sum):
     plt.plot(x, y_fit)
     plt.show()
     return regr.coef_[0], regr.score(x, y)
+
+def append_particle_to_csv(part_data,sum_file):
+
 
