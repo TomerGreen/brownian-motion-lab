@@ -1,15 +1,27 @@
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import trackpy as tp
+import pandas as pd
 import cv2, os, zipfile, pims
 
+
+# ============= Tracking Parameters =============#
+
 FRAME_NAME = 'frame'
-PARTICLE_SIZE = 71
-MIN_MASS = 100
-PERCENTILE = 99.2
+PARTICLE_SIZE = 71      # Updated 5.11
+MIN_MASS = 100          # Updated 5.11
+PERCENTILE = 99.2       # Updated 5.11
 VIDEO_DIRNAME = 'videos'
 RAW_DATA_DIRNAME = 'data'
 
+
+# ============= Linking Parameters =============#
+
+MAX_PIXELS_BW_FRAMES = 5
+TRACKING_MEMORY = 3
+
+
+# ============= Function Library =============#
 
 def zipdir(path, zipname):
     """Creates a zip out of a directory. ziph is a zipfile handle."""
@@ -69,12 +81,46 @@ def save_data(frame_dir, save_to_dir):
     #tp.annotate(data, frames[0])
 
 
-def save_data_from_dir(dirpath):
-    for root, dirs, files in os.walk(dirpath):
+def save_data_from_dir(vid_dirpath, data_dirpath):
+    """
+    Takes the paths of a directory containing videos and a directory into which to save the data.
+    Extracts the tracking data from every .avi file in the video dir to a CSV with the same name
+    in the data dir. Overwrites existing CSV's if they have the same name.
+    :param vid_dirpath: the video directory path.
+    :param data_dirpath: the data directory path.
+    :return:
+    """
+    for root, dirs, files in os.walk(vid_dirpath):
         for filename in files:
             if filename.endswith('.avi'):
                 out_dir = extract_frames(root + '/' + filename)
-                save_data(out_dir, RAW_DATA_DIRNAME)
+                save_data(out_dir, data_dirpath)
+
+def add_linking_data_to_csv(datafile):
+    """
+    Adds a 'particle' column to tracking data CSV according to global parameters.
+    Actually replaces the existing CSV with another one which includes particle linking.
+    Does nothing if datafile does not have a .csv extension.
+    :param datafile: A path to the file to be processed.
+    """
+    if datafile.endswith('.csv'):
+        data = pd.read_csv(datafile)
+        data = tp.link_df(data, MAX_PIXELS_BW_FRAMES, memory=TRACKING_MEMORY)
+        data.to_csv(datafile)
+
+
+def add_linking_data_to_dir(data_dirpath):
+    """
+    Same as add_linking_data_to_csv but for an entire directory containing CSV's.
+    :param data_dirpath: the CSV directory
+    """
+    for root, dirs, files in os.walk(data_dirpath):
+        for file in files:
+            datafile = root + '/' + file
+            print("Linking " + str(datafile))
+            add_linking_data_to_csv(datafile)   # Takes care of validating .csv extension.
+
 
 if __name__ == '__main__':
-    save_data_from_dir(VIDEO_DIRNAME)
+    #save_data_from_dir(VIDEO_DIRNAME,RAW_DATA_DIRNAME)
+    add_linking_data_to_dir(RAW_DATA_DIRNAME)
