@@ -7,6 +7,8 @@ from sklearn.linear_model import LinearRegression
 
 MAX_TIME_GAP = 50
 MIN_TRACK_LENGTH = 50
+MAX_PIXELS_BW_FRAMES = 5
+TRACKING_MEMORY = 3
 
 
 def cancel_avg_velocity_drift(data):
@@ -23,7 +25,7 @@ def cancel_avg_velocity_drift(data):
     data = pd.merge(data, vel_table[['particle', 'avg_x_vel', 'avg_y_vel']], on='particle', how='left')
     data['x'] = data['x'] - (data['avg_x_vel'] * data['frame_count'])
     data['y'] = data['y'] - (data['avg_y_vel'] * data['frame_count'])
-    print(data.head(100))
+    return data
 
     # Older attempt
     """
@@ -56,9 +58,8 @@ def cancel_avg_velocity_drift(data):
 
 def get_distance_sq_data(datafile):
     data = pd.read_csv(datafile)
-
+    data = tp.link_df(data, MAX_PIXELS_BW_FRAMES, memory=TRACKING_MEMORY)
     data = tp.filter_stubs(data, MIN_TRACK_LENGTH)
-    data = cancel_avg_velocity_drift(data)
     print('Found ' + str(data['particle'].nunique()) + ' particles')
     data = cancel_avg_velocity_drift(data)
     for particle in data.particle.unique():
@@ -86,5 +87,5 @@ def get_particle_sq_distance_data(part_data):
 
 
 if __name__ == '__main__':
-    data = pd.read_csv('0')
+    data = pd.read_csv('data/1.csv')
     cancel_avg_velocity_drift(data)
