@@ -87,5 +87,5 @@ def get_particle_sq_distance_data(part_data):
 
 
 if __name__ == '__main__':
-    data = pd.read_csv('data/1.csv')
+    data = pd.read_csv('0')
     cancel_avg_velocity_drift(data)
