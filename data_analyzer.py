@@ -9,6 +9,8 @@ MAX_TIME_GAP = 50
 MIN_TRACK_LENGTH = 50
 MAX_PIXELS_BW_FRAMES = 5
 TRACKING_MEMORY = 3
+PIXEL_LENGTH_IN_METERS = 0.3756*(10**(-6))
+PIXEL_LENGTH_ERROR = 0.003*(10**(-6))
 
 
 def cancel_avg_velocity_drift(data):
@@ -56,12 +58,17 @@ def cancel_avg_velocity_drift(data):
     """
 
 
-def get_distance_sq_data(datafile):
+def get_linked_data_without_drift(datafile):
     data = pd.read_csv(datafile)
     data = tp.link_df(data, MAX_PIXELS_BW_FRAMES, memory=TRACKING_MEMORY)
     data = tp.filter_stubs(data, MIN_TRACK_LENGTH)
     print('Found ' + str(data['particle'].nunique()) + ' particles')
     data = cancel_avg_velocity_drift(data)
+    return data
+
+
+def get_distance_sq_data(datafile):
+    get_linked_data_without_drift(datafile)
     for particle in data.particle.unique():
         part_data = data[data.particle == particle].loc[:, ['x', 'y']]    # x,y data for current particle.
         part_sum = get_particle_sq_distance_data(part_data)
@@ -87,5 +94,7 @@ def get_particle_sq_distance_data(part_data):
 
 
 if __name__ == '__main__':
-    data = pd.read_csv('0')
-    cancel_avg_velocity_drift(data)
+    data = get_linked_data_without_drift('data/3.csv')
+    tp.plot_traj(data)
+    #agg_data = data[['particle', 'avg_x_vel', 'avg_y_vel']].groupby('particle').agg('mean')
+    #print(agg_data)
