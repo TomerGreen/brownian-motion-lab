@@ -51,9 +51,10 @@ def get_distance_sq_data(datafile):
     :return: a data frame with columns: particle, r_sq, time_gap and residual.
     """
     data = Main.get_data(datafile)
+    print(data.head())
     r_sq_data = pd.DataFrame()
     for particle in data.particle.unique():
-        part_data = data[data.particle == particle].loc[:, ['particle', 'size', 'x', 'y']]    # x,y data for current particle.
+        part_data = data[data.particle == particle]
         part_sum = get_particle_sq_distance_data(part_data)
         part_sum['particle'] = particle
         part_sum = add_residuals_to_particle_summary(part_sum)
@@ -106,11 +107,9 @@ def get_particle_sq_distance_data(part_data):
     result['particle'] = part_num
     result['radius'] = part_rad     # These are already in meters.
     result['radius_error'] = rad_error
-    result['temp'] = part_data['temp']
-    result['temp_error'] = part_data['temp_error']
-    result['visc'] = part_data['visc']
-    result['visc_error'] = part_data['visc_error']
-    print(result.head(100))
+    # Copies the temp and viscosity data from the argument data.
+    for varname in Main.DEFAULT_ENV_VARIABLES.keys():
+        result[varname] = part_data.iloc[0][varname]
     return result
 
 

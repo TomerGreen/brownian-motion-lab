@@ -13,24 +13,27 @@ logging.basicConfig(level=logging.DEBUG)
 
 # ============= EXPERIMENT CONFIGURATION CONSTANTS ============= #
 
-TEMP_ABS_ERROR = 1      # The absolute temperature error. set to 1 degree.
-DEFAULT_TEMPERATURE = 296     #23 deg. celcius
-DEFAULT_VISCOSITY = 0.00093505      #100% water at 23 deg celcius
-DEFAULT_VISCOSITY_ERROR = 0.00
+DEFAULT_ENV_VARIABLES = {
+    'temp': 296,    #23 deg. celcius
+    'temp_error': 1,
+    'visc': 0.00093505,      #100% water at 23 deg celcius
+    'visc_error': 0.00
+}
+
 
 # If a certain value does not appear, its default value will be used.
 ENVIRONMENT_VARIABLES = {
-    '1.csv':
+    'a.csv':
         {
             'visc': 0.05,
             'visc_error': 0.005,
             'temp': 300
         },
-    '2.csv':
+    'b.csv':
         {
             'visc': 0.1,
         },
-    '3.csv':
+    'c.csv':
         {
             'temp': 300
         },
@@ -180,27 +183,19 @@ def main(data, particle, table2_path, table3_path):
 def add_environment_variables(data, filepath):
     """
     Fills a data file with temperature and viscosity data, according to a dict at the top of this file.
-    The name of the data file (for example, temp30.csv) must be given.
+    The name of the data file (for example, temp30.csv) must be given. If it is not found, or if any
+    variable is missing - inserts default values.
     """
+    file_dict = dict()
     filename = os.path.basename(filepath)
-    file_dict = ENVIRONMENT_VARIABLES[filename]
-    if 'temp' in file_dict.keys():
-        temp = file_dict['temp']
-    else:
-        temp = DEFAULT_TEMPERATURE
-    if 'visc' in file_dict.keys():
-        visc = file_dict['visc']
-    else:
-        visc = DEFAULT_VISCOSITY
-    temp_error = TEMP_ABS_ERROR
-    if 'visc_error' in file_dict.keys():
-        visc_error = file_dict['visc_error']
-    else:
-        visc_error = DEFAULT_VISCOSITY_ERROR
-    data['temp'] = temp
-    data['visc'] = visc
-    data['temp_error'] = temp_error
-    data['visc_error'] = visc_error
+    if filename in ENVIRONMENT_VARIABLES.keys():
+        file_dict = ENVIRONMENT_VARIABLES[filename]
+    for varname in DEFAULT_ENV_VARIABLES.keys():
+        if varname in file_dict.keys():
+            var_value = file_dict[varname]
+        else:
+            var_value = DEFAULT_ENV_VARIABLES[varname]
+        data[varname] = var_value
     return data
 
 
