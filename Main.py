@@ -14,9 +14,9 @@ logging.basicConfig(level=logging.DEBUG)
 # ============= EXPERIMENT CONFIGURATION CONSTANTS ============= #
 
 TEMP_ABS_ERROR = 1      # The absolute temperature error. set to 1 degree.
-DEFAULT_TEMPERATURE = 300
-DEFAULT_VISCOSITY = 0.05
-DEFAULT_VISCOSITY_ERROR = 0.005
+DEFAULT_TEMPERATURE = 296     #23 deg. celcius
+DEFAULT_VISCOSITY = 0.00093505      #100% water at 23 deg celcius
+DEFAULT_VISCOSITY_ERROR = 0.00
 
 # If a certain value does not appear, its default value will be used.
 ENVIRONMENT_VARIABLES = {
@@ -34,17 +34,23 @@ ENVIRONMENT_VARIABLES = {
         {
             'temp': 300
         },
-    '4.csv':
+    '100%water.csv':
         {
         },
 }
 
 # ============= FUNCTIONS ============= #
-
-
 RAW_DATA_PATH ='D:\\GDrive\\Lab II\\Raw Data\\week 2/100%water.csv'
-TABLE2_PATH = '100%water2.table2.csv'
-TABLE3_PATH = '100%water2.table3.csv'
+TABLE2_PATH = '100%water.table2.csv'
+TABLE3_PATH = '100%water.table3v2.csv'
+
+def get_radius_error(radius):
+    """
+    takes into account z axis errors
+    :param radius:
+    :return:
+    """
+    return 0.1*radius
 
 def get_chi_sq(table3_path):
     """
@@ -59,7 +65,7 @@ def get_chi_sq(table3_path):
     return sum
 
 
-def append_table3(data, particle, table3_path, particle_size):
+def append_table3(data, particle, table3_path, particle_size=0):
     """
     :param data: dataframe
     :param particle: int
@@ -67,15 +73,19 @@ def append_table3(data, particle, table3_path, particle_size):
     :param particle_size: int
     :return:
     """
+    particle_size = data[data['particle'] == 22][data['frame'] == 0]['size']
+    radius = particle_size*theoretical_model.PIXEL_LENGTH_IN_METERS
+    radius_err = get_radius_error(radius)
+
     part_sum = get_particle_sq_distance_data(data[data.particle == particle])
     # write data to table_3
     c, s, std_err = get_regression_table2(part_sum)
 
     theory_val, theory_err = theoretical_model.get_estimated_inverse_slope(
-        data.temp, data.temp_err, data.visc, data.visc_err, data.rad, data.rad_err)
+        data.temp[0], data.temp_error[0], data.visc[0], data.visc_error[0], radius, radius_err)
 
-    df = pd.DataFrame([particle, c, s, particle_size, std_err, theory_err, theory_val],
-                      columns=['particle', 'coef', 'score', 'length', 'std_err', 'theory_err', 'theory_val'])
+    df = pd.DataFrame([particle, c, s, radius,radius_err, std_err, theory_err, theory_val],
+                      columns=['particle', 'coef', 'score', 'radius','radius_err', 'std_err', 'theory_err', 'theory_val'])
     # sum_file = '100%water.table3.csv'
     with open(table3_path, 'a') as f:
         df.to_csv(f, header=None)
@@ -98,7 +108,7 @@ def get_regression_table2(part_sum):
     creates linear regression for r_sq vs t,
     plots graph
     returns coeff and r^2 score and stderr
-    :param part_sum: dataframe with r_sq, frame_gap columns
+    :param part_sum: dataframe with r_sq, time_gap columns
     :return: coeff: array size 1, score: int
     """
     # x = part_sum.frame_gap
@@ -113,7 +123,7 @@ def get_regression_table2(part_sum):
     # plt.show()
     # stderr = 0
 
-    mod = smf.ols(formula='r_sq ~ frame_gap - 1', data=part_sum)
+    mod = smf.ols(formula='r_sq ~ time_gap - 1', data=part_sum)
     res = mod.fit()
     return res.params[0], res.rsquared, res.bse[0]
     # return regr.coef_[0], regr.score(x, y), stderr
