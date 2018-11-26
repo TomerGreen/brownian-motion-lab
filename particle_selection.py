@@ -1,5 +1,5 @@
 import data_analyzer as analyzer
-import Main as main
+import mmain as main
 import matplotlib.pyplot as plt
 import matplotlib.image as img
 import trackpy as tp
