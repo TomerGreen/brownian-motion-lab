@@ -6,14 +6,13 @@ import Main
 from sklearn.linear_model import LinearRegression
 import scipy.optimize as opt
 import functools
+import theoretical_model as tm
 
 
 MAX_TIME_GAP = 50
 MIN_TRACK_LENGTH = 50
 MAX_PIXELS_BW_FRAMES = 5
 TRACKING_MEMORY = 3
-PIXEL_LENGTH_IN_METERS = 0.3756*(10**(-6))
-PIXEL_LENGTH_ERROR = 0.003*(10**(-6))
 
 
 def cancel_avg_velocity_drift(data):
@@ -33,6 +32,8 @@ def cancel_avg_velocity_drift(data):
     return data
 
 
+# REDUNDANT
+"""
 def get_linked_data_without_drift(datafile):
     data = pd.read_csv(datafile)
     data = tp.link_df(data, MAX_PIXELS_BW_FRAMES, memory=TRACKING_MEMORY)
@@ -40,18 +41,19 @@ def get_linked_data_without_drift(datafile):
     print('Found ' + str(data['particle'].nunique()) + ' particles')
     data = cancel_avg_velocity_drift(data)
     return data
+    """
 
 
 def get_distance_sq_data(datafile):
     """
     Takes a tracking data file and returns summarized data per particle.
     :param datafile: a raw tracking data file, without linking or drift-cancelling.
-    :return: a data frame with columns: particle, r_sq, frame_gap and residual.
+    :return: a data frame with columns: particle, r_sq, time_gap and residual.
     """
-    data = get_linked_data_without_drift(datafile)
+    data = Main.get_data(datafile)
     r_sq_data = pd.DataFrame()
     for particle in data.particle.unique():
-        part_data = data[data.particle == particle].loc[:, ['x', 'y']]    # x,y data for current particle.
+        part_data = data[data.particle == particle].loc[:, ['particle', 'size', 'x', 'y']]    # x,y data for current particle.
         part_sum = get_particle_sq_distance_data(part_data)
         part_sum['particle'] = particle
         part_sum = add_residuals_to_particle_summary(part_sum)
@@ -70,27 +72,41 @@ def get_mean_residual_by_time_frame(data, cut_quantile):
     """
     top_quant_col_name = 'quantile_' + str(1-cut_quantile)
     bottom_quant_col_name = 'quantile_' + str(cut_quantile)
-    data[bottom_quant_col_name] = data.groupby('frame_gap')['residual'].transform(lambda x: x.quantile(cut_quantile))
-    data[top_quant_col_name] = data.groupby('frame_gap')['residual'].transform(lambda x: x.quantile(1-cut_quantile))
+    data[bottom_quant_col_name] = data.groupby('time_gap')['residual'].transform(lambda x: x.quantile(cut_quantile))
+    data[top_quant_col_name] = data.groupby('time_gap')['residual'].transform(lambda x: x.quantile(1-cut_quantile))
     data = data[(data['residual'] <= data[top_quant_col_name]) & (data['residual'] >= data[bottom_quant_col_name])]
-    res_by_time = data.groupby('frame_gap').agg('mean')[['residual']]
+    res_by_time = data.groupby('time_gap').agg('mean')[['residual']]
     return res_by_time
 
 
 def get_particle_sq_distance_data(part_data):
+    """
+    Gets rows of data relevant to one particle and returns summarized data IN PHYSICAL QUANTITIES for that particle
+    :param part_data: A row that includes (at least) particle number, size, x and y coordinates and frame number.
+    :return: A data frame with particle number, particle radius, and <r^2> in m^2 per time gap in seconds.
+    """
 
     def _get_sq_distance(row):
-        return row['x']**2 + row['y']**2
+        return row['x'] ** 2 + row['y'] ** 2
 
-    result = pd.DataFrame(columns=['frame_gap', 'r_sq'])
+    part_num = int(part_data.iloc[0]['particle'])
+    part_rad = part_data['size'].mean() * tm.PIXEL_LENGTH_IN_METERS
+    rad_error = np.sqrt(tm.RELATIVE_PIXEL_NUM_ERROR**2 + (tm.PIXEL_LENGTH_ERROR/tm.PIXEL_LENGTH_IN_METERS)**2) * part_rad
+    result = pd.DataFrame(columns=['time_gap', 'r_sq'])
     for gap in range(1, MAX_TIME_GAP+1):
         gap_data = part_data.iloc[::gap, :]    # the x,y position of every nth row.
         diff_data = gap_data.diff()
         # Each row shows the squared difference from the previous one.
         distance_sq_series = diff_data.apply(_get_sq_distance, axis='columns')
         mean_distance_sq = distance_sq_series.mean()
-        result = result.append({'frame_gap':gap, 'r_sq':mean_distance_sq}, ignore_index=True)
+        result = result.append({'time_gap': gap, 'r_sq': mean_distance_sq}, ignore_index=True)
         result = result.dropna()
+    result['time_gap'] = result['time_gap'] * tm.SECONDS_PER_FRAME
+    result['r_sq'] = result['r_sq'] * (tm.PIXEL_LENGTH_IN_METERS ** 2)
+    result['particle'] = part_num
+    result['radius'] = part_rad     # These are already in meters.
+    result['radius_error'] = rad_error
+    print(result.head(100))
     return result
 
 
@@ -102,14 +118,16 @@ def add_residuals_to_particle_summary(part_sum):
 
     # ===== FOR LINEAR FIT USE THIS ===== #
 
-    #lin_coeff = Main.get_regression(part_sum)[0]
-    #part_sum['residual'] = part_sum['r_sq'] - part_sum['frame_gap'] * lin_coeff
+    lin_coeff = Main.get_regression_table2(part_sum)[0]
+    part_sum['residual'] = part_sum['r_sq'] - part_sum['time_gap'] * lin_coeff
+
 
     # ===== FOR LINEAR AND EXPONENTIAL FIT USE THIS ===== #
-    params = get_linear_plus_exp_fit(part_sum)
-    print(params)
-    part_sum['residual'] = part_sum['r_sq'] - part_sum['frame_gap'].apply(lin_plus_exp_fit_function,
-                                                                        args=(params[0], params[1], params[2]))
+
+    #params = get_linear_plus_exp_fit(part_sum)
+    #print(params)
+    #part_sum['residual'] = part_sum['r_sq'] - part_sum['time_gap'].apply(lin_plus_exp_fit_function,
+    #                                                                    args=(params[0], params[1], params[2]))
 
     return part_sum
 
@@ -126,12 +144,12 @@ def lin_plus_exp_fit_function(t, m, c, a):
 
 
 def get_linear_plus_exp_fit(part_sum):
-    params, covariance = opt.curve_fit(lin_plus_exp_fit_function, part_sum['frame_gap'], part_sum['r_sq'], maxfev=1500)
+    params, covariance = opt.curve_fit(lin_plus_exp_fit_function, part_sum['time_gap'], part_sum['r_sq'], maxfev=1500)
     return params
 
 
 if __name__ == '__main__':
     r_sq_data = get_distance_sq_data('data/8.csv')
-    res_data = get_mean_residual_by_time_frame(r_sq_data, 0.1)
-    plt.scatter(res_data.index.values, res_data['residual'])
-    plt.show()
+    #res_data = get_mean_residual_by_time_frame(r_sq_data, 0.1)
+    #plt.scatter(res_data.index.values, res_data['residual'])
+    #plt.show()

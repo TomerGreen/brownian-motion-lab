@@ -28,19 +28,19 @@ def get_regression_table2(part_sum):
     creates linear regression for r_sq vs t,
     plots graph
     returns coeff and r^2 score
-    :param part_sum: dataframe with r_sq, frame_gap columns
+    :param part_sum: dataframe with r_sq, time_gap columns
     :return: coeff: array size 1, score: int
     """
-    x = part_sum.frame_gap
+    x = part_sum.time_gap
     x = x[:, None]
     y = part_sum.r_sq
     y = y[:, None]
     regr = linear_model.LinearRegression(fit_intercept=False)
     regr.fit(x, y)
     y_fit = regr.predict(x)
-    plt.scatter(x, y)
-    plt.plot(x, y_fit)
-    plt.show()
+    #plt.scatter(x, y)
+    #plt.plot(x, y_fit)
+    #plt.show()
     return regr.coef_[0], regr.score(x, y)
 
 
