@@ -207,6 +207,8 @@ def get_data(raw_data_path):
     data = pd.read_csv(raw_data_path)
     data = tp.link_df(data, MAX_PIXELS_BW_FRAMES, memory=TRACKING_MEMORY)
     data = tp.filter_stubs(data, MIN_TRACK_LENGTH)
-    data = cancel_avg_velocity_drift(data)
+    drift = tp.compute_drift(data)
+    data = tp.subtract_drift(data, drift)
+    #data = cancel_avg_velocity_drift(data)
     data = add_environment_variables(data, raw_data_path)
     return data
