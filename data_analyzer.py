@@ -71,21 +71,47 @@ def get_particle_selection_dict(selection_dirpath):
     return selection_dict
 
 
-def get_distance_sq_data(datafile):
+def get_distance_sq_data_from_dir(data_dirpath, part_select_dict):
+    """
+    Returns summarized data for an entire folder. Actually appends data frames like you get from
+    get_distance_sq_data_from_file, and adds a column with the filename called 'video'.
+    """
+    result = pd.DataFrame()
+    for root, dirs, files in os.walk(data_dirpath):
+        for filename in files:
+            if filename.endswith('.csv'):
+                data_from_file = get_distance_sq_data_from_file(root + '/' + filename, part_select_dict)
+                data_filename = os.path.splitext(filename)[0]
+                data_from_file['video'] = data_filename
+                result = result.append(data_from_file)
+    return result
+
+
+# NOTE THAT THIS FUNCTION SKIPS FILES IF THEY ARE NOT IN THE SELECTION DICTIONARY
+def get_distance_sq_data_from_file(datafile, part_select_dict):
     """
     Takes a tracking data file and returns summarized data per particle.
     :param datafile: a raw tracking data file, without linking or drift-cancelling.
-    :return: a data frame with columns: particle, r_sq, time_gap and residual.
+    :param part_select_dict: a particle selection dictionary created by the function above.
+    :return: a data frame with columns: particle, size r_sq, time_gap and residual, along with experiment
+    variables that are passed from the get_data function.
     """
     data = mmain.get_data(datafile)
-    print(data.head())
     r_sq_data = pd.DataFrame()
+    data_filename = os.path.splitext(os.path.basename(datafile))[0]
+    for key in part_select_dict.keys():
+        # Handles numerical names that were butchered by format transformation.
+        if str(float(key)) == str(float(data_filename)):
+            data_filename = str(float(data_filename))
+        else:
+            data_filename = data_filename
     for particle in data.particle.unique():
-        part_data = data[data.particle == particle]
-        part_sum = get_particle_sq_distance_data(part_data)
-        part_sum['particle'] = particle
-        part_sum = add_residuals_to_particle_summary(part_sum)
-        r_sq_data = r_sq_data.append(part_sum)
+        if data_filename in part_select_dict.keys() and particle in part_select_dict[data_filename]:
+            part_data = data[data.particle == particle]
+            part_sum = get_particle_sq_distance_data(part_data)
+            part_sum['particle'] = particle
+            part_sum = add_residuals_to_particle_summary(part_sum)
+            r_sq_data = r_sq_data.append(part_sum)
     return r_sq_data
 
 
@@ -104,7 +130,6 @@ def get_mean_residual_by_time_frame(data, cut_quantile):
     data[top_quant_col_name] = data.groupby('time_gap')['residual'].transform(lambda x: x.quantile(1-cut_quantile))
     data = data[(data['residual'] <= data[top_quant_col_name]) & (data['residual'] >= data[bottom_quant_col_name])]
     res_by_time = data.groupby('time_gap').agg('mean')[['residual']]
-    print(res_by_time.head())
     return res_by_time
 
 
@@ -179,9 +204,7 @@ def get_linear_plus_exp_fit(part_sum):
 
 if __name__ == '__main__':
     sel_dict = get_particle_selection_dict('./selected_particles')
-    #data = mmain.get_data('data/9.csv')
-    #mmain.show_annotated_first_frame(data, 'videos/9/')
-    #r_sq_data = get_distance_sq_data('data/9.csv')
-    #res_data = get_mean_residual_by_time_frame(r_sq_data, 0.05)
-    #plt.scatter(res_data.index.values * 10, res_data['residual'] / (tm.PIXEL_LENGTH_IN_METERS**2))
-    #plt.show()
+    r_sq_data = get_distance_sq_data_from_dir('data', sel_dict)
+    res_data = get_mean_residual_by_time_frame(r_sq_data, 0.05)
+    plt.scatter(res_data.index.values * 10, res_data['residual'] / (tm.PIXEL_LENGTH_IN_MICRONS**2))
+    plt.show()
