@@ -53,7 +53,7 @@ def get_radius_error(radius):
     :param radius:
     :return:
     """
-    return 0.1*radius
+    return 0.05*radius
 
 def get_chi_sq(table3_path):
     """
@@ -87,8 +87,8 @@ def append_table3(data, particle, table3_path, particle_size=0):
     theory_val, theory_err = theoretical_model.get_estimated_inverse_slope(
         data.iloc[0].temp, data.iloc[0].temp_error, data.iloc[0].visc, data.iloc[0].visc_error, radius, radius_err)
 
-    df = pd.DataFrame([[particle, c, s, radius,radius_err, std_err, theory_err, theory_val]],
-                      columns=['particle', 'coef', 'score', 'radius','radius_err', 'std_err', 'theory_err', 'theory_val'])
+    df = pd.DataFrame([[particle, 1/c, s, radius,radius_err, std_err, theory_err, theory_val]],
+                      columns=['particle', 'coef_inverse', 'score', 'radius','radius_err', 'std_err', 'theory_err', 'theory_val'])
     # sum_file = '100%water.table3.csv'
     with open(table3_path, 'a') as f:
         df.to_csv(f, header=None)
@@ -203,7 +203,7 @@ def get_data(raw_data_path):
 
 if __name__ == '__main__':
 
-    particles = []
+    particles = [10,11,22,43,48]
     if len(particles)>0:
         data = get_data(RAW_DATA_PATH)
         for p in particles:
