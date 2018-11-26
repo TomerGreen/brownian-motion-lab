@@ -17,7 +17,7 @@ DEFAULT_ENV_VARIABLES = {
     'temp': 296,    #23 deg. celcius
     'temp_error': 1,
     'visc': 0.00093505,      #100% water at 23 deg celcius
-    'visc_error': 0.00
+    'visc_error': 0.01
 }
 
 
@@ -76,8 +76,8 @@ def append_table3(data, particle, table3_path, particle_size=0):
     :param particle_size: int
     :return:
     """
-    particle_size = data[data['particle'] == 22][data['frame'] == 0]['size']
-    radius = particle_size*theoretical_model.PIXEL_LENGTH_IN_METERS
+    particle_size = data[data['particle']==22].iloc[0]['size']
+    radius = particle_size*theoretical_model.PIXEL_LENGTH_IN_MICRONS
     radius_err = get_radius_error(radius)
 
     part_sum = get_particle_sq_distance_data(data[data.particle == particle])
@@ -87,7 +87,7 @@ def append_table3(data, particle, table3_path, particle_size=0):
     theory_val, theory_err = theoretical_model.get_estimated_inverse_slope(
         data.temp[0], data.temp_error[0], data.visc[0], data.visc_error[0], radius, radius_err)
 
-    df = pd.DataFrame([particle, c, s, radius,radius_err, std_err, theory_err, theory_val],
+    df = pd.DataFrame([[particle, c, s, radius,radius_err, std_err, theory_err, theory_val]],
                       columns=['particle', 'coef', 'score', 'radius','radius_err', 'std_err', 'theory_err', 'theory_val'])
     # sum_file = '100%water.table3.csv'
     with open(table3_path, 'a') as f:

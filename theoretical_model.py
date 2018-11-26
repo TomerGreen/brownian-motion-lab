@@ -2,19 +2,27 @@ import scipy.constants as const
 from math import sqrt
 
 
-PIXEL_LENGTH_IN_METERS = 0.3756*(10**(-6))
-PIXEL_LENGTH_ERROR = 0.003*(10**(-6))
+PIXEL_LENGTH_IN_MICRONS = 0.3756
+PIXEL_LENGTH_ERROR = 0.003
 SECONDS_PER_FRAME = 0.1
 RELATIVE_PIXEL_NUM_ERROR = 0.1  # If this is 0.1, then a size of 12 pixels will have an error of 1.2 pixels.
 
 
 def get_slope(temp, visc, rad):
-    slope = (2 * const.k * temp) / (3 * const.pi * visc * rad)
+    """
+
+    :param temp:
+    :param visc:
+    :param rad:
+    :return: slope in micron squared per sec
+    """
+
+    slope = (2 * const.k * temp) / (3 * const.pi * visc * rad*10**-6)*10**12
     return slope
 
 
 def get_relative_error(temp, temp_err, visc, visc_err, rad, rad_error):
-    rel_error = sqrt((temp_err / temp) ^ 2 + (visc_err / visc) ^ 2 + (rad_error / rad) ^ 2)
+    rel_error = sqrt((temp_err / temp) ** 2 + (visc_err / visc) ** 2 + (rad_error / rad) ** 2)
     return rel_error
 
 
