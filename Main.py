@@ -13,7 +13,6 @@ RAW_DATA_PATH ='D:\\GDrive\\Lab II\\Raw Data\\week 2/100%water.csv'
 TABLE2_PATH = '100%water2.table2.csv'
 TABLE3_PATH = '100%water2.table3.csv'
 
-
 def get_chi_sq(table3_path):
     """
 
@@ -43,8 +42,8 @@ def append_table3(data, particle, table3_path, particle_size):
     theory_val, theory_err = theoretical_model.get_estimated_inverse_slope(
         data.temp, data.temp_err, data.visc, data.visc_err, data.rad, data.rad_err)
 
-    df = pd.DataFrame([[particle, c, s, particle_size, std_err, theory_err, theory_val]],
-                      columns=['particle', 'coef', 'score', 'length', 'std_err','theory_err','theory_val'])
+    df = pd.DataFrame([particle, c, s, particle_size, std_err, theory_err, theory_val],
+                      columns=['particle', 'coef', 'score', 'length', 'std_err', 'theory_err', 'theory_val'])
     # sum_file = '100%water.table3.csv'
     with open(table3_path, 'a') as f:
         df.to_csv(f, header=None)
