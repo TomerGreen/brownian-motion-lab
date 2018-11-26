@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 from sklearn import linear_model
 import numpy as np
 from data_analyzer import *
+import data_analyzer as analyzer
 import trackpy as tp
 import pims
 import os.path
@@ -94,7 +95,7 @@ def append_table3(data, particle, table3_path, particle_size=0):
         df.to_csv(f, header=None)
 
 
-def show_annotated_first_frame(data,img_dir_path):
+def show_annotated_first_frame(data, img_dir_path):
     """
     :param data: dataframe
     :param img_dir_path: string
@@ -205,10 +206,9 @@ def get_data(raw_data_path):
     :return:
     """
     data = pd.read_csv(raw_data_path)
-    data = tp.link_df(data, MAX_PIXELS_BW_FRAMES, memory=TRACKING_MEMORY)
-    data = tp.filter_stubs(data, MIN_TRACK_LENGTH)
+    data = tp.link_df(data, analyzer.MAX_PIXELS_BW_FRAMES, memory=analyzer.TRACKING_MEMORY)
+    data = tp.filter_stubs(data, analyzer.MIN_TRACK_LENGTH)
     drift = tp.compute_drift(data)
     data = tp.subtract_drift(data, drift)
-    #data = cancel_avg_velocity_drift(data)
     data = add_environment_variables(data, raw_data_path)
     return data

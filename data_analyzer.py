@@ -15,6 +15,7 @@ MAX_PIXELS_BW_FRAMES = 5
 TRACKING_MEMORY = 3
 
 # REDUNDANT. Using trackpy function :(
+"""
 def cancel_avg_velocity_drift(data):
     frame_count_lambda = lambda x: x - x.min()
     data['frame_count'] = data.groupby('particle')['frame'].transform(frame_count_lambda)
@@ -30,6 +31,7 @@ def cancel_avg_velocity_drift(data):
     data['x'] = data['x'] - (data['avg_x_vel'] * data['frame_count'])
     data['y'] = data['y'] - (data['avg_y_vel'] * data['frame_count'])
     return data
+    """
 
 
 # REDUNDANT
@@ -150,7 +152,9 @@ def get_linear_plus_exp_fit(part_sum):
 
 
 if __name__ == '__main__':
-    r_sq_data = get_distance_sq_data('data/8.csv')
-    res_data = get_mean_residual_by_time_frame(r_sq_data, 0.05)
-    plt.scatter(res_data.index.values * 10, res_data['residual'] / (tm.PIXEL_LENGTH_IN_METERS**2))
-    plt.show()
+    data = Main.get_data('data/9.csv')
+    Main.show_annotated_first_frame(data, 'videos/9/')
+    #r_sq_data = get_distance_sq_data('data/9.csv')
+    #res_data = get_mean_residual_by_time_frame(r_sq_data, 0.05)
+    #plt.scatter(res_data.index.values * 10, res_data['residual'] / (tm.PIXEL_LENGTH_IN_METERS**2))
+    #plt.show()
