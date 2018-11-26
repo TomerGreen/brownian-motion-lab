@@ -19,6 +19,9 @@ def get_relative_error(temp, temp_err, visc, visc_err, rad, rad_error):
 
 
 def get_estimated_inverse_slope(temp, temp_err, visc, visc_err, rad, rad_error):
+    """
+    Returns the inverse slope and its absolute error.
+    """
     inv_slope = (1/get_slope(temp, visc, rad))
     rel_error = get_relative_error(temp, temp_err, visc, visc_err, rad, rad_error)
     error = rel_error * inv_slope
