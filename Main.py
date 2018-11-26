@@ -20,10 +20,13 @@ def get_chi_sq(table3_path):
     :param table3_path: DataFrame with columns:
     :return: chi_squared
     """
-
     df = pd.read_csv(table3_path)
 
-    raise Exception('get_chi_sq not implemented yet')
+    sum = 0
+    for i in range(df.particle.size):
+        sum += np.square((df.coef[i] - df.theory_val[i]) / df.theory_err[i])
+    return sum
+
 
 def append_table3(data, particle, table3_path, particle_size):
     """
@@ -37,9 +40,10 @@ def append_table3(data, particle, table3_path, particle_size):
     # write data to table_3
     c, s, std_err = get_regression_table2(part_sum)
 
-    theory_val, theory_err = theoretical_model.get_estimated_slope()
+    theory_val, theory_err = theoretical_model.get_estimated_inverse_slope(
+        data.temp, data.temp_err, data.visc, data.visc_err, data.rad, data.rad_err)
 
-    df = pd.DataFrame([[particle, c, s, particle_size, std_err, theory_err,theory_val]],
+    df = pd.DataFrame([[particle, c, s, particle_size, std_err, theory_err, theory_val]],
                       columns=['particle', 'coef', 'score', 'length', 'std_err','theory_err','theory_val'])
     # sum_file = '100%water.table3.csv'
     with open(table3_path, 'a') as f:
