@@ -2,7 +2,7 @@ import pandas as pd
 import trackpy as tp
 import numpy as np
 import matplotlib.pyplot as plt
-import Main
+import mmain
 from sklearn.linear_model import LinearRegression
 import scipy.optimize as opt
 import functools
@@ -52,7 +52,8 @@ def get_distance_sq_data(datafile):
     :param datafile: a raw tracking data file, without linking or drift-cancelling.
     :return: a data frame with columns: particle, r_sq, time_gap and residual.
     """
-    data = Main.get_data(datafile)
+    data = mmain.get_data(datafile)
+    print(data.head())
     r_sq_data = pd.DataFrame()
     for particle in data.particle.unique():
         part_data = data[data.particle == particle]
@@ -93,8 +94,8 @@ def get_particle_sq_distance_data(part_data):
         return row['x'] ** 2 + row['y'] ** 2
 
     part_num = int(part_data.iloc[0]['particle'])
-    part_rad = part_data['size'].mean() * tm.PIXEL_LENGTH_IN_METERS
-    rad_error = np.sqrt(tm.RELATIVE_PIXEL_NUM_ERROR**2 + (tm.PIXEL_LENGTH_ERROR/tm.PIXEL_LENGTH_IN_METERS)**2) * part_rad
+    part_rad = part_data['size'].mean() * tm.PIXEL_LENGTH_IN_MICRONS
+    rad_error = np.sqrt(tm.RELATIVE_PIXEL_NUM_ERROR ** 2 + (tm.PIXEL_LENGTH_ERROR / tm.PIXEL_LENGTH_IN_MICRONS) ** 2) * part_rad
     result = pd.DataFrame(columns=['time_gap', 'r_sq'])
     for gap in range(1, MAX_TIME_GAP+1):
         gap_data = part_data.iloc[::gap, :]    # the x,y position of every nth row.
@@ -105,12 +106,12 @@ def get_particle_sq_distance_data(part_data):
         result = result.append({'time_gap': gap, 'r_sq': mean_distance_sq}, ignore_index=True)
         result = result.dropna()
     result['time_gap'] = result['time_gap'] * tm.SECONDS_PER_FRAME
-    result['r_sq'] = result['r_sq'] * (tm.PIXEL_LENGTH_IN_METERS ** 2)
+    result['r_sq'] = result['r_sq'] * (tm.PIXEL_LENGTH_IN_MICRONS ** 2)
     result['particle'] = part_num
     result['radius'] = part_rad     # These are already in meters.
     result['radius_error'] = rad_error
     # Copies the temp and viscosity data from the argument data.
-    for varname in Main.DEFAULT_ENV_VARIABLES.keys():
+    for varname in mmain.DEFAULT_ENV_VARIABLES.keys():
         result[varname] = part_data.iloc[0][varname]
     return result
 
@@ -123,7 +124,7 @@ def add_residuals_to_particle_summary(part_sum):
 
     # ===== FOR LINEAR FIT USE THIS ===== #
 
-    lin_coeff = Main.get_regression_table2(part_sum)[0]
+    lin_coeff = mmain.get_regression_table2(part_sum)[0]
     part_sum['residual'] = part_sum['r_sq'] - part_sum['time_gap'] * lin_coeff
 
 

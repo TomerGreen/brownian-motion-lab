@@ -18,7 +18,7 @@ DEFAULT_ENV_VARIABLES = {
     'temp': 296,    #23 deg. celcius
     'temp_error': 1,
     'visc': 0.00093505,      #100% water at 23 deg celcius
-    'visc_error': 0.00
+    'visc_error': 0.00001
 }
 
 
@@ -54,7 +54,7 @@ def get_radius_error(radius):
     :param radius:
     :return:
     """
-    return 0.1*radius
+    return 0.05*radius
 
 def get_chi_sq(table3_path):
     """
@@ -65,7 +65,7 @@ def get_chi_sq(table3_path):
 
     sum = 0
     for i in range(df.particle.size):
-        sum += np.square((df.coef[i] - df.theory_val[i]) / df.theory_err[i])
+        sum += np.square((df.iloc[i].coef - df.iloc[i].theory_val) / df.iloc[i].theory_err)
     return sum
 
 
@@ -77,8 +77,8 @@ def append_table3(data, particle, table3_path, particle_size=0):
     :param particle_size: int
     :return:
     """
-    particle_size = data[data['particle'] == 22][data['frame'] == 0]['size']
-    radius = particle_size*theoretical_model.PIXEL_LENGTH_IN_METERS
+    particle_size = data[data['particle'] == particle].iloc[0]['size']
+    radius = particle_size*theoretical_model.PIXEL_LENGTH_IN_MICRONS
     radius_err = get_radius_error(radius)
 
     part_sum = get_particle_sq_distance_data(data[data.particle == particle])
@@ -86,10 +86,10 @@ def append_table3(data, particle, table3_path, particle_size=0):
     c, s, std_err = get_regression_table2(part_sum)
 
     theory_val, theory_err = theoretical_model.get_estimated_inverse_slope(
-        data.temp[0], data.temp_error[0], data.visc[0], data.visc_error[0], radius, radius_err)
+        data.iloc[0].temp, data.iloc[0].temp_error, data.iloc[0].visc, data.iloc[0].visc_error, radius, radius_err)
 
-    df = pd.DataFrame([particle, c, s, radius,radius_err, std_err, theory_err, theory_val],
-                      columns=['particle', 'coef', 'score', 'radius','radius_err', 'std_err', 'theory_err', 'theory_val'])
+    df = pd.DataFrame([[particle, 1/c, s, radius,radius_err, std_err, theory_err, theory_val]],
+                      columns=['particle', 'coef_inverse', 'score', 'radius','radius_err', 'std_err', 'theory_err', 'theory_val'])
     # sum_file = '100%water.table3.csv'
     with open(table3_path, 'a') as f:
         df.to_csv(f, header=None)
@@ -168,19 +168,6 @@ def append_table2(data, particle, table2_path):
         part_sum.to_csv(f, header=None)
 
 
-def main(data, particle, table2_path, table3_path):
-    """
-    update table2 and table 3 per particle
-    :param data: DataFrame
-    :param particle: int
-    :param table2_path: string
-    :param table3_path: string
-    :return:
-    """
-    append_table2(data, particle, table2_path)
-    append_table3(data, particle, table3_path)
-
-
 def add_environment_variables(data, filepath):
     """
     Fills a data file with temperature and viscosity data, according to a dict at the top of this file.
@@ -212,3 +199,19 @@ def get_data(raw_data_path):
     data = tp.subtract_drift(data, drift)
     data = add_environment_variables(data, raw_data_path)
     return data
+
+
+if __name__ == '__main__':
+
+    particles = [10,11,22,43,48]
+    if len(particles)>0:
+        data = get_data(RAW_DATA_PATH)
+        for p in particles:
+            append_table3(data, p, TABLE3_PATH)
+            print(get_chi_sq(TABLE3_PATH))
+
+    df = pd.read_csv(TABLE3_PATH)
+    plt.errorbar(df.radius, df.coef, df.std_err, xerr=df.radius_err, fmt="o", capsize=4)
+    plt.xlabel('radius in micron')
+    plt.ylabel('coef = (3*pi*eta*r)/(2*k*T) in micron squared per sec')
+    plt.show()
