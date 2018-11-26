@@ -106,6 +106,10 @@ def get_particle_sq_distance_data(part_data):
     result['particle'] = part_num
     result['radius'] = part_rad     # These are already in meters.
     result['radius_error'] = rad_error
+    result['temp'] = part_data['temp']
+    result['temp_error'] = part_data['temp_error']
+    result['visc'] = part_data['visc']
+    result['visc_error'] = part_data['visc_error']
     print(result.head(100))
     return result
 
