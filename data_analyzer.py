@@ -14,7 +14,7 @@ MIN_TRACK_LENGTH = 50
 MAX_PIXELS_BW_FRAMES = 5
 TRACKING_MEMORY = 3
 
-
+# REDUNDANT. Using trackpy function :(
 def cancel_avg_velocity_drift(data):
     frame_count_lambda = lambda x: x - x.min()
     data['frame_count'] = data.groupby('particle')['frame'].transform(frame_count_lambda)
@@ -51,7 +51,6 @@ def get_distance_sq_data(datafile):
     :return: a data frame with columns: particle, r_sq, time_gap and residual.
     """
     data = Main.get_data(datafile)
-    print(data.head())
     r_sq_data = pd.DataFrame()
     for particle in data.particle.unique():
         part_data = data[data.particle == particle]
@@ -64,7 +63,7 @@ def get_distance_sq_data(datafile):
 
 def get_mean_residual_by_time_frame(data, cut_quantile):
     """
-    Takes sumarrized data per particle and returns the residual averaged by particle, per time frame.
+    Takes summarized data per particle and returns the residual averaged by particle, per time frame.
     This will enable us to examine systematic shift from a linear fit, by time.
     :param data: summarized data per particle with r_sq and residual per time frame
     :param cut_quantile: a quantile like 0.05 or 0.1. Residuals below that quantile or above 1-cut_quantile
@@ -77,6 +76,7 @@ def get_mean_residual_by_time_frame(data, cut_quantile):
     data[top_quant_col_name] = data.groupby('time_gap')['residual'].transform(lambda x: x.quantile(1-cut_quantile))
     data = data[(data['residual'] <= data[top_quant_col_name]) & (data['residual'] >= data[bottom_quant_col_name])]
     res_by_time = data.groupby('time_gap').agg('mean')[['residual']]
+    print(res_by_time.head())
     return res_by_time
 
 
@@ -140,8 +140,6 @@ def linear_fit_function(t, coeff):
 
 
 def lin_plus_exp_fit_function(t, m, c, a):
-    #print("Applying parameters: " + str(t) + ", " + str(m) + ", " + str(c) + ", " + str(a))
-    #print("just exponent is: " + str(np.exp(-a*t)))
     expression = m * t + (c / a) * (1 - np.exp(-a * t))
     return expression
 
@@ -153,6 +151,6 @@ def get_linear_plus_exp_fit(part_sum):
 
 if __name__ == '__main__':
     r_sq_data = get_distance_sq_data('data/8.csv')
-    #res_data = get_mean_residual_by_time_frame(r_sq_data, 0.1)
-    #plt.scatter(res_data.index.values, res_data['residual'])
-    #plt.show()
+    res_data = get_mean_residual_by_time_frame(r_sq_data, 0.05)
+    plt.scatter(res_data.index.values * 10, res_data['residual'] / (tm.PIXEL_LENGTH_IN_METERS**2))
+    plt.show()
