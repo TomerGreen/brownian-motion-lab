@@ -7,6 +7,7 @@ from sklearn.linear_model import LinearRegression
 import scipy.optimize as opt
 import functools
 import theoretical_model as tm
+import os
 
 
 MAX_TIME_GAP = 50
@@ -44,6 +45,30 @@ def get_linked_data_without_drift(datafile):
     data = cancel_avg_velocity_drift(data)
     return data
     """
+
+
+def get_particle_selection_dict(selection_dirpath):
+    """
+    Takes a path to a particle selection data directory, and returns a particle selection dictionary.
+    :param selection_dirpath: a path to a directory containing .xlsx or .csv files with particle selection
+    data, meaning that every row represents a particle, and contains the video name, particle numbers and a 'usable'
+    column with 1's and 0's
+    :return: A dictionary where the keys are the video names and the values are lists of selected particles.
+    """
+    selection_dict = dict()
+    for root, dirs, files in os.walk(selection_dirpath):
+        for filename in files:
+            if filename.endswith('.csv'):
+                sel_file_data = pd.read_csv(root + '/' + filename)
+            elif filename.endswith('.xlsx'):
+                sel_file_data = pd.read_excel(root + '/' + filename)
+            else:
+                continue
+            vidname = str(sel_file_data.iloc[0]['video'])
+            usable_parts_data = sel_file_data.loc[sel_file_data['usable'] == 1]
+            selected_particle_nums = usable_parts_data['particle'].astype(int).tolist()
+            selection_dict[vidname] = selected_particle_nums
+    return selection_dict
 
 
 def get_distance_sq_data(datafile):
@@ -153,8 +178,9 @@ def get_linear_plus_exp_fit(part_sum):
 
 
 if __name__ == '__main__':
-    data = Main.get_data('data/9.csv')
-    Main.show_annotated_first_frame(data, 'videos/9/')
+    sel_dict = get_particle_selection_dict('./selected_particles')
+    #data = mmain.get_data('data/9.csv')
+    #mmain.show_annotated_first_frame(data, 'videos/9/')
     #r_sq_data = get_distance_sq_data('data/9.csv')
     #res_data = get_mean_residual_by_time_frame(r_sq_data, 0.05)
     #plt.scatter(res_data.index.values * 10, res_data['residual'] / (tm.PIXEL_LENGTH_IN_METERS**2))

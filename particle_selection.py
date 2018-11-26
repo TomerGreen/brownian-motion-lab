@@ -24,6 +24,7 @@ def select_particles(data, vid_name, frame_zero_path, sel_data_dirname):
     """
 
     part_sel_data = data[data['frame'] == 0][['particle', 'x', 'y', 'size']]
+    part_sel_data['video'] = vid_name
     # Makes a selection data directory, if one doesn't exist.
     try:
         os.mkdir(sel_data_dirname)
@@ -45,6 +46,6 @@ def select_particles(data, vid_name, frame_zero_path, sel_data_dirname):
 
 
 if __name__ == '__main__':
-    VIDNAME = '1'
+    VIDNAME = '9'
     data = main.get_data('data/' + VIDNAME + '.csv')
     select_particles(data, VIDNAME, 'videos/' + VIDNAME + '/frame1.jpg', PARTICLE_SELECTION_DATA_DIRNAME)
