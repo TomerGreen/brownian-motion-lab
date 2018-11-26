@@ -22,6 +22,16 @@ def get_slope(temp, visc, rad):
 
 
 def get_relative_error(temp, temp_err, visc, visc_err, rad, rad_error):
+    """
+
+    :param temp:
+    :param temp_err:
+    :param visc:
+    :param visc_err:
+    :param rad: in micron
+    :param rad_error: in micron
+    :return:
+    """
     rel_error = sqrt((temp_err / temp) ** 2 + (visc_err / visc) ** 2 + (rad_error / rad) ** 2)
     return rel_error
 
