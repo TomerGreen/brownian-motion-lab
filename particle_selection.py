@@ -22,7 +22,6 @@ def select_particles(data, vid_name, frame_zero_path, sel_data_dirname):
     :param frame_zero_path: a path to a jpg file where the particles will be circled.
     :param sel_data_dirname: a directory name in which to save the particle selection data.
     """
-
     part_sel_data = data[data['frame'] == 0][['particle', 'x', 'y', 'size']]
     part_sel_data['video'] = vid_name
     # Makes a selection data directory, if one doesn't exist.

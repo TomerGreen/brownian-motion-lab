@@ -11,8 +11,8 @@ FRAME_NAME = 'frame'
 PARTICLE_SIZE = 71      # Updated 5.11
 MIN_MASS = 100          # Updated 5.11
 PERCENTILE = 99.2       # Updated 5.11
-VIDEO_DIRNAME = 'videos'
-RAW_DATA_DIRNAME = 'data'
+VIDEO_DIRNAME = 'week_3_videos'
+RAW_DATA_DIRNAME = 'week_3_data'
 
 
 # ============= Linking Parameters =============#
@@ -122,5 +122,5 @@ def add_linking_data_to_dir(data_dirpath):
 
 
 if __name__ == '__main__':
-    #save_data_from_dir(VIDEO_DIRNAME,RAW_DATA_DIRNAME)
-    add_linking_data_to_dir(RAW_DATA_DIRNAME)
+    save_data_from_dir(VIDEO_DIRNAME, RAW_DATA_DIRNAME)
+    #add_linking_data_to_dir(RAW_DATA_DIRNAME)

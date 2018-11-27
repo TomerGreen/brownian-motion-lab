@@ -47,14 +47,31 @@ def get_linked_data_without_drift(datafile):
     """
 
 # REFACTORING TO USE X AND Y COORS INSTEAD OF PARTICLE NUMBER
-def get_particle_selection_dict(selection_dirpath):
+def get_selected_particles_dict(selection_dirpath):
     """
     Takes a path to a particle selection data directory, and returns a particle selection dictionary.
     :param selection_dirpath: a path to a directory containing .xlsx or .csv files with particle selection
     data, meaning that every row represents a particle, and contains the video name, particle numbers and a 'usable'
     column with 1's and 0's
-    :return: A dictionary where the keys are the video names and the values are lists of tuples. Each tupple
-    contains the x and y coordinates in frame 0 of the selected particle.
+    :return: A dictionary with video names and lists of particle details dictionaries:
+    {
+        data_file1:
+        [
+            {
+                name: 1
+                initial_coordinates: (100, 200)
+                actual_size: 13.5
+            },
+            {
+                name:2
+                ...
+            }
+        ],
+        data_file2:
+        [
+        ...
+        ]
+    }
     """
     selection_dict = dict()
     for root, dirs, files in os.walk(selection_dirpath):
@@ -66,16 +83,23 @@ def get_particle_selection_dict(selection_dirpath):
             else:
                 continue
             vidname = str(sel_file_data.iloc[0]['video'])
+            actual_size_exists = 'actual_size' in sel_file_data.columns
             usable_parts_data = sel_file_data.loc[sel_file_data['usable'] == 1]
-            usable_coor_list = list()
+            part_details_list = list()
             for index, row in usable_parts_data.iterrows():
-                # Appends a tupple of x and y coors in frame 0.
-                usable_coor_list.append((row['x'], row['y']))
-            selection_dict[vidname] = usable_coor_list
+                part_details = dict()
+                part_details['name'] = row['particle']
+                part_details['initial_coordinates'] = (row['x'], row['y'])      # A tupple of x and y coors in frame 0.
+                if actual_size_exists:
+                    part_details['actual_size'] = float(row['actual_size'])
+                else:
+                    part_details['actual_size'] = row['size']
+                part_details_list.append(part_details)
+            selection_dict[vidname] = part_details_list
     return selection_dict
 
 
-def filter_particles(data, data_filename, selection_dict):
+def filter_particles(data, data_filename, select_part_dict):
     """
     Takes data from one file, the filename, and a selection dictionary, and returns the data for
     selected particles only. For, files that are not in the selection dictionary, the data is unchanged.
@@ -84,11 +108,11 @@ def filter_particles(data, data_filename, selection_dict):
     result = pd.DataFrame()
     data_filename = os.path.splitext(os.path.basename(data_filename))[0]
     # Handles numerical names that were butchered by format transformation.
-    for key in selection_dict.keys():
+    for key in select_part_dict.keys():
         if str(float(key)) == str(float(data_filename)):
             data_filename = str(float(data_filename))
     # Ignores data files that are not in the selection dict.
-    if data_filename not in selection_dict.keys():
+    if data_filename not in select_part_dict.keys():
         result = data
         print("Warning: file " + data_filename
             + " is not in the selection dictionary. all particles in it will be included.")
@@ -102,14 +126,16 @@ def filter_particles(data, data_filename, selection_dict):
                 # The x and y coors of the current particle in frame 0.
                 part_x = part_frame_zero_row['x']
                 part_y = part_frame_zero_row['y']
-                for x, y in selection_dict[data_filename]:
+                for part_details_dict in select_part_dict[data_filename]:
+                    x = part_details_dict['initial_coordinates'][0]
+                    y = part_details_dict['initial_coordinates'][1]
                     if x-1 <= part_x <= x+1 and y-1 <= part_y <= y+1:
                         result = result.append(part_data)
                         continue
     return result
 
 
-def get_distance_sq_data_from_dir(data_dirpath, part_select_dict):
+def get_distance_sq_data_from_dir(data_dirpath, select_part_dict):
     """
     Returns summarized data for an entire folder. Actually appends data frames like you get from
     get_distance_sq_data_from_file, and adds a column with the filename called 'video'.
@@ -118,22 +144,22 @@ def get_distance_sq_data_from_dir(data_dirpath, part_select_dict):
     for root, dirs, files in os.walk(data_dirpath):
         for filename in files:
             if filename.endswith('.csv'):
-                data_from_file = get_distance_sq_data_from_file(root + '/' + filename, part_select_dict)
+                data_from_file = get_distance_sq_data_from_file(root + '/' + filename, select_part_dict)
                 data_filename = os.path.splitext(filename)[0]
                 data_from_file['video'] = data_filename
                 result = result.append(data_from_file)
     return result
 
 
-def get_distance_sq_data_from_file(datafile, part_select_dict):
+def get_distance_sq_data_from_file(datafile, select_part_dict):
     """
     Takes a tracking data file and returns summarized data per particle.
     :param datafile: a raw tracking data file, without linking or drift-cancelling.
-    :param part_select_dict: a particle selection dictionary created by the function above.
+    :param select_part_dict: a particle selection dictionary created by the function above.
     :return: a data frame with columns: particle, size r_sq, time_gap and residual, along with experiment
     variables that are passed from the get_data function.
     """
-    data = mmain.get_data(datafile, part_select_dict)
+    data = mmain.get_data(datafile, select_part_dict)
     r_sq_data = pd.DataFrame()
     for particle in data.particle.unique():
         part_data = data[data['particle'] == particle]
@@ -232,7 +258,7 @@ def get_linear_plus_exp_fit(part_sum):
 
 
 if __name__ == '__main__':
-    sel_dict = get_particle_selection_dict('./selected_particles')
+    sel_dict = get_selected_particles_dict('./selected_particles')
     r_sq_data = get_distance_sq_data_from_dir('data', sel_dict)
     res_data = get_mean_residual_by_time_frame(r_sq_data, 0.05)
     plt.scatter(res_data.index.values * 10, res_data['residual'] / (tm.PIXEL_LENGTH_IN_MICRONS**2))
