@@ -124,7 +124,7 @@ def append_table3(data, particle, table3_path, particle_size=0):
     :return:
     """
     particle_size = data[data['particle'] == particle].iloc[0]['size']
-    radius = particle_size*theoretical_model.PIXEL_LENGTH_IN_MICRONS
+    radius = particle_size * theoretical_model.PIXEL_LENGTH_IN_MICRONS
     radius_err = get_radius_error(radius)
 
     part_sum = get_particle_sq_distance_data(data[data.particle == particle])
@@ -234,19 +234,26 @@ def add_environment_variables(data, filepath):
         if varname in file_dict.keys():
             var_value = file_dict[varname]
         else:
+            print("Warning: using default " + str(varname) + " for " + str(filename))
             var_value = DEFAULT_ENV_VARIABLES[varname]
         data[varname] = var_value
     return data
 
 
-def get_data(raw_data_path):
+def get_data(raw_data_path, part_select_dict):
     """
     :param raw_data_path: string
     :return:
     """
+    print("Processing file " + raw_data_path)
+    data_filename = os.path.splitext(os.path.basename(raw_data_path))[0]
     data = pd.read_csv(raw_data_path)
     data = tp.link_df(data, analyzer.MAX_PIXELS_BW_FRAMES, memory=analyzer.TRACKING_MEMORY)
+    print(str(len(data.particle.unique())) + " initial trajectories")
     data = tp.filter_stubs(data, analyzer.MIN_TRACK_LENGTH)
+    print(str(len(data.particle.unique())) + " trajectories span at least " + str(MIN_TRACK_LENGTH) + " frames" )
+    data = filter_particles(data, data_filename, part_select_dict)
+    print(str(len(data.particle.unique())) + " selected particles left")
     drift = tp.compute_drift(data)
     data = tp.subtract_drift(data, drift)
     data = analyzer.cancel_avg_velocity_drift(data)
