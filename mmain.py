@@ -2,13 +2,13 @@ import matplotlib.pyplot as plt
 from sklearn import linear_model
 import numpy as np
 from data_analyzer import *
-import data_analyzer as analyzer
 import trackpy as tp
 import pims
 import os.path
 import statsmodels.formula.api as smf
 import theoretical_model
 import logging
+import data_analyzer as analyzer
 logging.basicConfig(level=logging.DEBUG)
 
 
@@ -24,11 +24,55 @@ DEFAULT_ENV_VARIABLES = {
 
 # If a certain value does not appear, its default value will be used.
 ENVIRONMENT_VARIABLES = {
-    'a.csv':
+    '95%glys_10%part90%sol2.csv':
         {
-            'visc': 0.05,
-            'visc_error': 0.005,
-            'temp': 300
+            'visc': 0.138,
+            'visc_error': 0.11,
+        },
+    '95%glys_10%part90%sol1.csv':
+        {
+            'visc': 0.138,
+            'visc_error': 0.11,
+        },
+    '85%glys_30%part90%sol1.csv':
+        {
+            'visc': 0.0134,
+            'visc_error': 0.0051,
+        },
+    '85%glys_30%part90%sol2.csv':
+        {
+            'visc': 0.0134,
+            'visc_error': 0.0051,
+        },
+    '60%glys_10%part90%sol1.csv':
+        {
+            'visc': 0.00942,
+            'visc_error': 0.001982
+            ,
+        },
+    '60%glys_10%part90%sol2.csv':
+        {
+            'visc': 0.00942,
+            'visc_error': 0.001982
+            ,
+        },
+    '40%glys_10%part90%sol1.csv':
+        {
+            'visc': 0.0035713,
+            'visc_error': 0.0003559
+            ,
+        },
+    '40%glys_10%part90%sol2.csv':
+        {
+            'visc': 0.0035713,
+            'visc_error': 0.0003559
+            ,
+        },
+    '20%glys_10%part90%sol2.csv':
+        {
+            'visc': 0.0016941,
+            'visc_error': 0.0000638
+            ,
         },
     'b.csv':
         {
@@ -40,13 +84,15 @@ ENVIRONMENT_VARIABLES = {
         },
     '100%water.csv':
         {
+            'temp': 296,    #23 deg. celcius
+            'temp_error': 1,
+            'visc': 0.00093505,      #100% water at 23 deg celcius
+            'visc_error': 0.00001
         },
 }
 
 # ============= FUNCTIONS ============= #
-RAW_DATA_PATH ='D:\\GDrive\\Lab II\\Raw Data\\week 2/100%water.csv'
-TABLE2_PATH = '100%water.table2.csv'
-TABLE3_PATH = '100%water.table3v2.csv'
+
 
 def get_radius_error(radius):
     """
@@ -65,7 +111,7 @@ def get_chi_sq(table3_path):
 
     sum = 0
     for i in range(df.particle.size):
-        sum += np.square((df.iloc[i].coef - df.iloc[i].theory_val) / df.iloc[i].theory_err)
+        sum += np.square((df.iloc[i].coef_inverse - df.iloc[i].theory_val) / df.iloc[i].theory_err)
     return sum
 
 
@@ -88,11 +134,17 @@ def append_table3(data, particle, table3_path, particle_size=0):
     theory_val, theory_err = theoretical_model.get_estimated_inverse_slope(
         data.iloc[0].temp, data.iloc[0].temp_error, data.iloc[0].visc, data.iloc[0].visc_error, radius, radius_err)
 
+
     df = pd.DataFrame([[particle, 1/c, s, radius,radius_err, std_err, theory_err, theory_val]],
                       columns=['particle', 'coef_inverse', 'score', 'radius','radius_err', 'std_err', 'theory_err', 'theory_val'])
     # sum_file = '100%water.table3.csv'
-    with open(table3_path, 'a') as f:
-        df.to_csv(f, header=None)
+    if os.path.isfile(table3_path):
+        with open(table3_path, 'a') as f:
+            df.to_csv(f, header=None)
+    else:
+        with open(table3_path, 'a') as f:
+            df.to_csv(f)
+
 
 
 def show_annotated_first_frame(data, img_dir_path):
@@ -204,22 +256,29 @@ def get_data(raw_data_path, part_select_dict):
     print(str(len(data.particle.unique())) + " selected particles left")
     drift = tp.compute_drift(data)
     data = tp.subtract_drift(data, drift)
-    data = cancel_avg_velocity_drift(data)
+    data = analyzer.cancel_avg_velocity_drift(data)
     data = add_environment_variables(data, raw_data_path)
     return data
 
 
+RAW_DATA_PATH = 'data/3.csv'
+TABLE2_PATH = '100%water.table2.csv'
+TABLE3_PATH = '3.table3.csv'
+SELECTION_DIRPATH = './selected_particles'
+
 if __name__ == '__main__':
 
-    particles = [10,11,22,43,48]
+    sel_dict = get_particle_selection_dict(SELECTION_DIRPATH)
+    particles = sel_dict['3.0']
     if len(particles)>0:
         data = get_data(RAW_DATA_PATH)
         for p in particles:
-            append_table3(data, p, TABLE3_PATH)
-            print(get_chi_sq(TABLE3_PATH))
+            if p in data.particle.unique():
+                append_table3(data, p, TABLE3_PATH)
+                print(get_chi_sq(TABLE3_PATH))
 
     df = pd.read_csv(TABLE3_PATH)
-    plt.errorbar(df.radius, df.coef, df.std_err, xerr=df.radius_err, fmt="o", capsize=4)
+    plt.errorbar(df.radius, df.coef_inverse, df.std_err, xerr=df.radius_err, fmt="o", capsize=4)
     plt.xlabel('radius in micron')
-    plt.ylabel('coef = (3*pi*eta*r)/(2*k*T) in micron squared per sec')
+    plt.ylabel('coef_inverse = (3*pi*eta*r)/(2*k*T) in micron squared per sec')
     plt.show()
