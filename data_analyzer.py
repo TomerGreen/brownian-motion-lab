@@ -15,7 +15,6 @@ MIN_TRACK_LENGTH = 50
 MAX_PIXELS_BW_FRAMES = 5
 TRACKING_MEMORY = 3
 
-# REDUNDANT. Using trackpy function :(
 
 def cancel_avg_velocity_drift(data):
     frame_count_lambda = lambda x: x - x.min()
@@ -34,7 +33,6 @@ def cancel_avg_velocity_drift(data):
     return data
 
 
-
 # REDUNDANT
 """
 def get_linked_data_without_drift(datafile):
@@ -46,7 +44,7 @@ def get_linked_data_without_drift(datafile):
     return data
     """
 
-# REFACTORING TO USE X AND Y COORS INSTEAD OF PARTICLE NUMBER
+
 def get_selected_particles_dict(selection_dirpath):
     """
     Takes a path to a particle selection data directory, and returns a particle selection dictionary.
@@ -84,6 +82,8 @@ def get_selected_particles_dict(selection_dirpath):
                 continue
             vidname = str(sel_file_data.iloc[0]['video'])
             actual_size_exists = 'actual_size' in sel_file_data.columns
+            if not actual_size_exists:
+                print("Warning: no actual_size column in " + vidname + " selection table. Using trackpy sizes.")
             usable_parts_data = sel_file_data.loc[sel_file_data['usable'] == 1]
             part_details_list = list()
             for index, row in usable_parts_data.iterrows():
@@ -99,26 +99,29 @@ def get_selected_particles_dict(selection_dirpath):
     return selection_dict
 
 
-def filter_particles(data, data_filename, select_part_dict):
+def filter_particles_and_add_actual_size(data, data_filename, select_part_dict):
     """
     Takes data from one file, the filename, and a selection dictionary, and returns the data for
-    selected particles only. For, files that are not in the selection dictionary, the data is unchanged.
+    selected particles only, and with actual_size. For files that are not in the selection dictionary,
+    the data is unchanged. If there is no actual_size column, the dictionary already takes the trackpy size.
     If a particle does not appear on frame 0, it is filtered out.
     """
     result = pd.DataFrame()
+    data['actual_size'] = data['size']
     data_filename = os.path.splitext(os.path.basename(data_filename))[0]
     # Handles numerical names that were butchered by format transformation.
-    for key in select_part_dict.keys():
-        if str(float(key)) == str(float(data_filename)):
-            data_filename = str(float(data_filename))
+    try:
+        data_filename = str(float(data_filename))
+    except ValueError:
+        pass
     # Ignores data files that are not in the selection dict.
     if data_filename not in select_part_dict.keys():
         result = data
         print("Warning: file " + data_filename
-            + " is not in the selection dictionary. all particles in it will be included.")
+            + " is not in the selection dictionary. all particles in it will be included, with original sizes.")
     else:
         for particle in data.particle.unique():
-            part_data = data.loc[data['particle'] == particle]
+            part_data = data[data['particle'] == particle].copy()
             part_frame_zero_row = part_data.loc[part_data['frame'] == 0]
             # Skips particles that are not in the first frame.
             if not part_frame_zero_row.empty:
@@ -129,7 +132,9 @@ def filter_particles(data, data_filename, select_part_dict):
                 for part_details_dict in select_part_dict[data_filename]:
                     x = part_details_dict['initial_coordinates'][0]
                     y = part_details_dict['initial_coordinates'][1]
-                    if x-1 <= part_x <= x+1 and y-1 <= part_y <= y+1:
+                    actual_size = part_details_dict['actual_size']
+                    if x - 1 <= part_x <= x + 1 and y - 1 <= part_y <= y + 1:
+                        part_data['actual_size'] = actual_size
                         result = result.append(part_data)
                         continue
     return result
@@ -161,7 +166,7 @@ def get_distance_sq_data_from_file(datafile, select_part_dict):
     """
     data = mmain.get_data(datafile, select_part_dict)
     r_sq_data = pd.DataFrame()
-    for particle in data.particle.unique():
+    for particle in data['particle'].unique():
         part_data = data[data['particle'] == particle]
         part_sum = get_particle_sq_distance_data(part_data)
         part_sum['particle'] = particle
@@ -199,7 +204,7 @@ def get_particle_sq_distance_data(part_data):
         return row['x'] ** 2 + row['y'] ** 2
 
     part_num = int(part_data.iloc[0]['particle'])
-    part_rad = part_data['size'].mean() * tm.PIXEL_LENGTH_IN_MICRONS
+    part_rad = part_data['actual_size'].mean() * tm.PIXEL_LENGTH_IN_MICRONS
     rad_error = np.sqrt(tm.RELATIVE_PIXEL_NUM_ERROR ** 2 + (tm.PIXEL_LENGTH_ERROR / tm.PIXEL_LENGTH_IN_MICRONS) ** 2) * part_rad
     result = pd.DataFrame(columns=['time_gap', 'r_sq'])
     for gap in range(1, MAX_TIME_GAP+1):
@@ -213,7 +218,7 @@ def get_particle_sq_distance_data(part_data):
     result['time_gap'] = result['time_gap'] * tm.SECONDS_PER_FRAME
     result['r_sq'] = result['r_sq'] * (tm.PIXEL_LENGTH_IN_MICRONS ** 2)
     result['particle'] = part_num
-    result['radius'] = part_rad     # These are already in meters.
+    result['radius'] = part_rad     # These are already in microns.
     result['radius_error'] = rad_error
     # Copies the temp and viscosity data from the argument data.
     for varname in mmain.DEFAULT_ENV_VARIABLES.keys():
@@ -259,7 +264,8 @@ def get_linear_plus_exp_fit(part_sum):
 
 if __name__ == '__main__':
     sel_dict = get_selected_particles_dict('./selected_particles')
-    r_sq_data = get_distance_sq_data_from_dir('data', sel_dict)
-    res_data = get_mean_residual_by_time_frame(r_sq_data, 0.05)
-    plt.scatter(res_data.index.values * 10, res_data['residual'] / (tm.PIXEL_LENGTH_IN_MICRONS**2))
-    plt.show()
+    mmain.fill_table3_from_data_dir('data', sel_dict, 'test_table3.csv')
+    #r_sq_data = get_distance_sq_data_from_dir('data', sel_dict)
+    #res_data = get_mean_residual_by_time_frame(r_sq_data, 0.05)
+    #plt.scatter(res_data.index.values * 10, res_data['residual'] / (tm.PIXEL_LENGTH_IN_MICRONS**2))
+    #plt.show()

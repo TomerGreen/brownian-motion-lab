@@ -115,7 +115,28 @@ def get_chi_sq(table3_path):
     return sum
 
 
-def append_table3(data, particle, table3_path, particle_size=0):
+def fill_table3_from_data_dir(data_dirname, part_select_dict, table3_path):
+    """
+    Takes a path to a directory with data files, and fills a table3 style data file with all the data in the dir.
+    Make sure that the data file names are identical to the 'video' column in the corresponding particle selection
+    table (the name of the the table doesn't matter), and that the particles in that table have either 0 or 1
+    in the 'usable' column, and their correct size in the 'actual_size' column.
+    If any selection data is missing, all particles in the corresponding .csv data file will be included in the
+    analysis, with their trackpy size as their radius (in microns). Pay attention to warning messages throughout
+    the run.
+    For data files with non-default viscosity and temperature, these need to be changed in the ENVIRONMENT_VARIABLES
+    dictionary.
+    """
+    # This is summarized data (video, particle, r^sq, t, radius, temp etc.) from an entire directory
+    data = get_distance_sq_data_from_dir(data_dirname, part_select_dict)
+    for video in data['video'].unique():
+        vid_data = data.loc[data['video'] == video]
+        for particle in vid_data['particle'].unique():
+            part_sum = vid_data.loc[vid_data['particle'] == particle]
+            append_table3(part_sum, table3_path)
+
+
+def append_table3(part_sum, table3_path, particle_size=0):
     """
     :param data: dataframe
     :param particle: int
@@ -123,20 +144,21 @@ def append_table3(data, particle, table3_path, particle_size=0):
     :param particle_size: int
     :return:
     """
-    particle_size = data[data['particle'] == particle].iloc[0]['size']
-    radius = particle_size * theoretical_model.PIXEL_LENGTH_IN_MICRONS
+    first_row = part_sum.iloc[0]
+    radius = first_row['radius']
     radius_err = get_radius_error(radius)
+    particle = first_row['particle']
 
-    part_sum = get_particle_sq_distance_data(data[data.particle == particle])
     # write data to table_3
     c, s, std_err = get_regression_table2(part_sum)
 
     theory_val, theory_err = theoretical_model.get_estimated_inverse_slope(
-        data.iloc[0].temp, data.iloc[0].temp_error, data.iloc[0].visc, data.iloc[0].visc_error, radius, radius_err)
-
+        part_sum.iloc[0].temp, part_sum.iloc[0].temp_error, part_sum.iloc[0].visc,
+        part_sum.iloc[0].visc_error, radius, radius_err)
 
     df = pd.DataFrame([[particle, 1/c, s, radius,radius_err, std_err, theory_err, theory_val]],
-                      columns=['particle', 'coef_inverse', 'score', 'radius','radius_err', 'std_err', 'theory_err', 'theory_val'])
+                      columns=['particle', 'coef_inverse', 'score', 'radius','radius_err', 'std_err',
+                               'theory_err', 'theory_val'])
     # sum_file = '100%water.table3.csv'
     if os.path.isfile(table3_path):
         with open(table3_path, 'a') as f:
@@ -178,7 +200,6 @@ def get_regression_table2(part_sum):
     # plt.plot(x, y_fit)
     # plt.show()
     # stderr = 0
-
     mod = smf.ols(formula='r_sq ~ time_gap - 1', data=part_sum)
     res = mod.fit()
     return res.params[0], res.rsquared, res.bse[0]
@@ -207,7 +228,6 @@ def fit_table3(table3_path):
 
 def append_table2(data, particle, table2_path):
     """
-
     :param data: dataframe
     :param particle: int
     :param table2_path: string
@@ -252,7 +272,7 @@ def get_data(raw_data_path, part_select_dict):
     print(str(len(data.particle.unique())) + " initial trajectories")
     data = tp.filter_stubs(data, analyzer.MIN_TRACK_LENGTH)
     print(str(len(data.particle.unique())) + " trajectories span at least " + str(MIN_TRACK_LENGTH) + " frames" )
-    data = filter_particles(data, data_filename, part_select_dict)
+    data = filter_particles_and_add_actual_size(data, data_filename, part_select_dict)
     print(str(len(data.particle.unique())) + " selected particles left")
     drift = tp.compute_drift(data)
     data = tp.subtract_drift(data, drift)
@@ -268,7 +288,8 @@ SELECTION_DIRPATH = './selected_particles'
 
 if __name__ == '__main__':
 
-    sel_dict = get_particle_selection_dict(SELECTION_DIRPATH)
+    # This can be replaced by a call to 'fill_table3..'
+    sel_dict = get_selected_particles_dict(SELECTION_DIRPATH)
     particles = sel_dict['3.0']
     if len(particles)>0:
         data = get_data(RAW_DATA_PATH)
@@ -276,7 +297,6 @@ if __name__ == '__main__':
             if p in data.particle.unique():
                 append_table3(data, p, TABLE3_PATH)
                 print(get_chi_sq(TABLE3_PATH))
-
     df = pd.read_csv(TABLE3_PATH)
     plt.errorbar(df.radius, df.coef_inverse, df.std_err, xerr=df.radius_err, fmt="o", capsize=4)
     plt.xlabel('radius in micron')
