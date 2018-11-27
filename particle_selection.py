@@ -44,7 +44,6 @@ def select_particles(data, vid_name, frame_zero_path, sel_data_dirname):
         ax.set_title(title)
         plt.show()
 
-
 if __name__ == '__main__':
     VIDNAME = '9'
     data = main.get_data('data/' + VIDNAME + '.csv')
