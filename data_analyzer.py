@@ -77,10 +77,15 @@ def filter_particles(data, data_filename, selection_dict):
     data_filename = os.path.splitext(os.path.basename(data_filename))[0]
     for key in selection_dict.keys():
         # Handles numerical names that were butchered by format transformation.
-        if str(float(key)) == str(float(data_filename)):
-            data_filename = str(float(data_filename))
-        else:
+        try:
+            if str(float(key)) == str(float(data_filename)):
+                data_filename = str(float(data_filename))
+            else:
+                data_filename = data_filename
+        # in case unable to convert string to float
+        except ValueError:
             data_filename = data_filename
+
         if data_filename in selection_dict.keys():
             for particle in data.particle.unique():
                 part_data = data[data.particle == particle]
@@ -119,10 +124,15 @@ def get_distance_sq_data_from_file(datafile, part_select_dict):
     data_filename = os.path.splitext(os.path.basename(datafile))[0]
     for key in part_select_dict.keys():
         # Handles numerical names that were butchered by format transformation.
-        if str(float(key)) == str(float(data_filename)):
-            data_filename = str(float(data_filename))
-        else:
+        try:
+            if str(float(key)) == str(float(data_filename)):
+                data_filename = str(float(data_filename))
+            else:
+                data_filename = data_filename
+        # in case unable to convert string to float
+        except ValueError:
             data_filename = data_filename
+            
     for particle in data.particle.unique():
         if data_filename in part_select_dict.keys() and particle in part_select_dict[data_filename]:
             part_data = data[data['particle'] == particle]
