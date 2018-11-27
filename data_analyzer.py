@@ -16,7 +16,7 @@ MAX_PIXELS_BW_FRAMES = 5
 TRACKING_MEMORY = 3
 
 # REDUNDANT. Using trackpy function :(
-"""
+
 def cancel_avg_velocity_drift(data):
     frame_count_lambda = lambda x: x - x.min()
     data['frame_count'] = data.groupby('particle')['frame'].transform(frame_count_lambda)
@@ -32,7 +32,7 @@ def cancel_avg_velocity_drift(data):
     data['x'] = data['x'] - (data['avg_x_vel'] * data['frame_count'])
     data['y'] = data['y'] - (data['avg_y_vel'] * data['frame_count'])
     return data
-    """
+
 
 
 # REDUNDANT
@@ -71,6 +71,24 @@ def get_particle_selection_dict(selection_dirpath):
     return selection_dict
 
 
+# WORK IN PROGRESS
+def filter_particles(data, data_filename, selection_dict):
+    result = pd.DataFrame()
+    data_filename = os.path.splitext(os.path.basename(data_filename))[0]
+    for key in selection_dict.keys():
+        # Handles numerical names that were butchered by format transformation.
+        if str(float(key)) == str(float(data_filename)):
+            data_filename = str(float(data_filename))
+        else:
+            data_filename = data_filename
+        if data_filename in selection_dict.keys():
+            for particle in data.particle.unique():
+                part_data = data[data.particle == particle]
+                if particle in selection_dict[data_filename]:
+                    result = result.append(part_data)
+    return result
+
+
 def get_distance_sq_data_from_dir(data_dirpath, part_select_dict):
     """
     Returns summarized data for an entire folder. Actually appends data frames like you get from
@@ -107,7 +125,7 @@ def get_distance_sq_data_from_file(datafile, part_select_dict):
             data_filename = data_filename
     for particle in data.particle.unique():
         if data_filename in part_select_dict.keys() and particle in part_select_dict[data_filename]:
-            part_data = data[data.particle == particle]
+            part_data = data[data['particle'] == particle]
             part_sum = get_particle_sq_distance_data(part_data)
             part_sum['particle'] = particle
             part_sum = add_residuals_to_particle_summary(part_sum)

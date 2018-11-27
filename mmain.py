@@ -197,6 +197,7 @@ def get_data(raw_data_path):
     data = tp.filter_stubs(data, analyzer.MIN_TRACK_LENGTH)
     drift = tp.compute_drift(data)
     data = tp.subtract_drift(data, drift)
+    data = cancel_avg_velocity_drift(data)
     data = add_environment_variables(data, raw_data_path)
     return data
 
