@@ -10,7 +10,7 @@ import theoretical_model as tm
 import os
 
 
-MAX_TIME_GAP = 50
+MAX_TIME_GAP = 15
 MIN_TRACK_LENGTH = 50
 MAX_PIXELS_BW_FRAMES = 5
 TRACKING_MEMORY = 3
@@ -108,12 +108,12 @@ def filter_particles_and_add_actual_size(data, data_filename, select_part_dict):
     """
     result = pd.DataFrame()
     data['actual_size'] = data['size']
-    data_filename = os.path.splitext(os.path.basename(data_filename))[0]
+    data_filename = os.path.basename(data_filename)
     # Handles numerical names that were butchered by format transformation.
-    try:
-        data_filename = str(float(data_filename))
-    except ValueError:
-        pass
+    # try:
+    #     data_filename = str(float(data_filename))
+    # except ValueError:
+    #     pass
     # Ignores data files that are not in the selection dict.
     if data_filename not in select_part_dict.keys():
         result = data
@@ -186,10 +186,13 @@ def get_mean_residual_by_time_frame(data, cut_quantile):
     """
     top_quant_col_name = 'quantile_' + str(1-cut_quantile)
     bottom_quant_col_name = 'quantile_' + str(cut_quantile)
+    print(data.head())
     data[bottom_quant_col_name] = data.groupby('time_gap')['residual'].transform(lambda x: x.quantile(cut_quantile))
     data[top_quant_col_name] = data.groupby('time_gap')['residual'].transform(lambda x: x.quantile(1-cut_quantile))
+    print(data.shape)
     data = data[(data['residual'] <= data[top_quant_col_name]) & (data['residual'] >= data[bottom_quant_col_name])]
-    res_by_time = data.groupby('time_gap').agg('mean')[['residual']]
+    print(data.shape)
+    res_by_time = data.groupby('time_gap', as_index=False).agg(np.mean)
     return res_by_time
 
 
@@ -223,6 +226,11 @@ def get_particle_sq_distance_data(part_data):
     # Copies the temp and viscosity data from the argument data.
     for varname in mmain.DEFAULT_ENV_VARIABLES.keys():
         result[varname] = part_data.iloc[0][varname]
+    # plt.figure().suptitle('Sample <r^2> by time for one particle without drift')
+    # plt.xlabel('Time (s)')
+    # plt.ylabel('<r^2> (10^-12 m^2)')
+    # plt.scatter(result['time_gap'], result['r_sq'])
+    # plt.show()
     return result
 
 
@@ -236,6 +244,12 @@ def add_residuals_to_particle_summary(part_sum):
 
     lin_coeff = mmain.get_regression_table2(part_sum)[0]
     part_sum['residual'] = part_sum['r_sq'] - part_sum['time_gap'] * lin_coeff
+
+    # plt.bar(part_sum['time_gap'], part_sum['residual'])  # (tm.PIXEL_LENGTH_IN_MICRONS**2)
+    # plt.suptitle("Particle residual from linear fit by time")
+    # plt.xlabel("Time (s)")
+    # plt.ylabel("<r^2> (10^-12 m^2)")
+    # plt.show()
 
 
     # ===== FOR LINEAR AND EXPONENTIAL FIT USE THIS ===== #
@@ -264,8 +278,12 @@ def get_linear_plus_exp_fit(part_sum):
 
 if __name__ == '__main__':
     sel_dict = get_selected_particles_dict('./selected_particles')
-    mmain.fill_table3_from_data_dir('data', sel_dict, 'test_table3.csv')
+    data = get_distance_sq_data_from_dir('data', sel_dict)
+    print(data.head())
     #r_sq_data = get_distance_sq_data_from_dir('data', sel_dict)
-    #res_data = get_mean_residual_by_time_frame(r_sq_data, 0.05)
-    #plt.scatter(res_data.index.values * 10, res_data['residual'] / (tm.PIXEL_LENGTH_IN_MICRONS**2))
-    #plt.show()
+    res_data = get_mean_residual_by_time_frame(data, 0.1)
+    plt.bar(res_data['time_gap'], res_data['residual']) #(tm.PIXEL_LENGTH_IN_MICRONS**2)
+    plt.suptitle("Average residual for video by time")
+    plt.xlabel("Time (s)")
+    plt.ylabel("<r^2> (10^-12 m^2)")
+    plt.show()
