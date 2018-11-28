@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 from sklearn import linear_model
 import numpy as np
-from data_analyzer import *
+# from data_analyzer import *
 import trackpy as tp
 import pims
 import os.path
@@ -10,6 +10,7 @@ import theoretical_model
 import logging
 import data_analyzer as analyzer
 logging.basicConfig(level=logging.DEBUG)
+import pandas as pd
 
 
 # ============= EXPERIMENT CONFIGURATION CONSTANTS ============= #
@@ -89,6 +90,73 @@ ENVIRONMENT_VARIABLES = {
             'visc': 0.00093505,      #100% water at 23 deg celcius
             'visc_error': 0.00001
         },
+    '40deg-take2.csv':
+        {
+            'temp': 40,
+            'temp_error': 0.5,
+         },
+    '45deg-take2.csv':
+        {
+            'temp': 45,
+            'temp_error': 0.5,
+         },
+    '33 deg.csv':
+        {
+            'temp': 33,
+            'temp_error': 0.5,
+        },
+    '38 deg.csv':
+        {
+            'temp': 38,
+            'temp_error': 0.5,
+        },
+    '52.csv':
+        {
+            'temp': 52,
+            'temp_error': 0.5,
+        },
+    '27.9.csv':
+        {
+            'temp': 27.9,
+            'temp_error': 0.5,
+        },
+    '50deg-take2.csv':
+        {
+            'temp': 50,
+            'temp_error': 0.5,
+        },
+    '62deg':
+        {
+            'temp': 62,
+            'temp_error': 0.5,
+        },
+    '67deg.csv':
+        {
+            'temp': 67,
+            'temp_error': 0.5,
+        },
+    '57 deg.csv':
+        {
+            'temp': 57,
+            'temp_error': 0.5,
+        },
+    '43 deg.csv':
+        {
+            'temp': 43,
+            'temp_error': 0.5,
+        },
+    '57deg-take2.csv':
+        {
+            'temp': 57,
+            'temp_error': 0.5,
+        },
+    '62deg.csv':
+        {
+            'temp': 62,
+            'temp_error': 0.5,
+        },
+
+
 }
 
 # ============= FUNCTIONS ============= #
@@ -126,9 +194,10 @@ def fill_table3_from_data_dir(data_dirname, part_select_dict, table3_path):
     the run.
     For data files with non-default viscosity and temperature, these need to be changed in the ENVIRONMENT_VARIABLES
     dictionary.
+    :param part_select_dict
     """
     # This is summarized data (video, particle, r^sq, t, radius, temp etc.) from an entire directory
-    data = get_distance_sq_data_from_dir(data_dirname, part_select_dict)
+    data = analyzer.get_distance_sq_data_from_dir(data_dirname, part_select_dict)
     for video in data['video'].unique():
         vid_data = data.loc[data['video'] == video]
         for particle in vid_data['particle'].unique():
@@ -271,8 +340,8 @@ def get_data(raw_data_path, part_select_dict):
     data = tp.link_df(data, analyzer.MAX_PIXELS_BW_FRAMES, memory=analyzer.TRACKING_MEMORY)
     print(str(len(data.particle.unique())) + " initial trajectories")
     data = tp.filter_stubs(data, analyzer.MIN_TRACK_LENGTH)
-    print(str(len(data.particle.unique())) + " trajectories span at least " + str(MIN_TRACK_LENGTH) + " frames" )
-    data = filter_particles_and_add_actual_size(data, data_filename, part_select_dict)
+    print(str(len(data.particle.unique())) + " trajectories span at least " + str(analyzer.MIN_TRACK_LENGTH) + " frames" )
+    data = analyzer.filter_particles_and_add_actual_size(data, data_filename, part_select_dict)
     print(str(len(data.particle.unique())) + " selected particles left")
     drift = tp.compute_drift(data)
     data = tp.subtract_drift(data, drift)
@@ -289,16 +358,19 @@ SELECTION_DIRPATH = './selected_particles'
 if __name__ == '__main__':
 
     # This can be replaced by a call to 'fill_table3..'
-    sel_dict = get_selected_particles_dict(SELECTION_DIRPATH)
-    particles = sel_dict['3.0']
-    if len(particles)>0:
-        data = get_data(RAW_DATA_PATH)
-        for p in particles:
-            if p in data.particle.unique():
-                append_table3(data, p, TABLE3_PATH)
-                print(get_chi_sq(TABLE3_PATH))
-    df = pd.read_csv(TABLE3_PATH)
-    plt.errorbar(df.radius, df.coef_inverse, df.std_err, xerr=df.radius_err, fmt="o", capsize=4)
-    plt.xlabel('radius in micron')
-    plt.ylabel('coef_inverse = (3*pi*eta*r)/(2*k*T) in micron squared per sec')
-    plt.show()
+    # sel_dict = get_selected_particles_dict(SELECTION_DIRPATH)
+    # particles = sel_dict['3.0']
+    # if len(particles)>0:
+    #     data = get_data(RAW_DATA_PATH)
+    #     for p in particles:
+    #         if p in data.particle.unique():
+    #             append_table3(data, p, TABLE3_PATH)
+    #             print(get_chi_sq(TABLE3_PATH))
+    # df = pd.read_csv(TABLE3_PATH)
+    # plt.errorbar(df.radius, df.coef_inverse, df.std_err, xerr=df.radius_err, fmt="o", capsize=4)
+    # plt.xlabel('radius in micron')
+    # plt.ylabel('coef_inverse = (3*pi*eta*r)/(2*k*T) in micron squared per sec')
+    # plt.show()
+
+    d = analyzer.get_selected_particles_dict('./selected_particles')
+    fill_table3_from_data_dir('data',d,'table_3_all_13:20')

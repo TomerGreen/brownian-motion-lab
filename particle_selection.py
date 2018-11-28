@@ -33,17 +33,19 @@ def select_particles(data, vid_name, frame_zero_path, sel_data_dirname):
     print("Writing particle selection data to " + sel_data_filepath)
     part_sel_data.to_csv(sel_data_filepath)
 
-    frame_zero = img.imread(frame_zero_path)
-    for index, row in part_sel_data.iterrows():
-        fig, ax = plt.subplots(1)
-        circ = Circle((row['x'], row['y']), 50, fill=False, color='white')
-        ax.imshow(frame_zero)
-        ax.add_patch(circ)
-        title = 'Particle #' + str(int(row['particle']))
-        ax.set_title(title)
-        plt.show()
+    # frame_zero = img.imread(frame_zero_path)
+    # for index, row in part_sel_data.iterrows():
+    #     fig, ax = plt.subplots(1)
+    #     circ = Circle((row['x'], row['y']), 50, fill=False, color='white')
+    #     ax.imshow(frame_zero)
+    #     ax.add_patch(circ)
+    #     title = 'Particle #' + str(int(row['particle']))
+    #     ax.set_title(title)
+    #     plt.show()
 
 if __name__ == '__main__':
-    VIDNAME = '95%glys_10%part90%sol2'
-    data = main.get_data('data/' + VIDNAME + '.csv')
-    select_particles(data, VIDNAME, 'videos/' + VIDNAME + '/frame1.jpg', PARTICLE_SELECTION_DATA_DIRNAME)
+    VIDNAMES = []
+    for v in VIDNAMES:
+        VIDNAME = v
+        data = main.get_data('data/' + VIDNAME + '.csv', {})
+        select_particles(data, VIDNAME, 'videos/' + VIDNAME + '/frame1.jpg', PARTICLE_SELECTION_DATA_DIRNAME)
