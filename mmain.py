@@ -12,7 +12,7 @@ import data_analyzer as analyzer
 logging.basicConfig(level=logging.DEBUG)
 import pandas as pd
 
-
+import scipy.constants as const
 # ============= EXPERIMENT CONFIGURATION CONSTANTS ============= #
 
 DEFAULT_ENV_VARIABLES = {
@@ -22,7 +22,7 @@ DEFAULT_ENV_VARIABLES = {
     'visc_error': 0.0003559
 }
 
-
+CEL_TO_KEL = 273
 # If a certain value does not appear, its default value will be used.
 ENVIRONMENT_VARIABLES = {
     '95%glys_10%part90%sol2.csv':
@@ -107,72 +107,72 @@ ENVIRONMENT_VARIABLES = {
         },
     '40deg-take2.csv':
         {
-            'temp': 40,
+            'temp': 40+CEL_TO_KEL,
             'temp_error': 0.5,
          },
     '45deg-take2.csv':
         {
-            'temp': 45,
+            'temp': 45+CEL_TO_KEL,
             'temp_error': 0.5,
          },
     '33 deg.csv':
         {
-            'temp': 33,
+            'temp': 33+CEL_TO_KEL,
             'temp_error': 0.5,
         },
     '38 deg.csv':
         {
-            'temp': 38,
+            'temp': 38+CEL_TO_KEL,
             'temp_error': 0.5,
         },
     '52.0.csv':
         {
-            'temp': 52,
+            'temp': 52+CEL_TO_KEL,
             'temp_error': 0.5,
         },
     '27.9 deg.csv':
         {
-            'temp': 27.9,
+            'temp': 27.9+CEL_TO_KEL,
             'temp_error': 0.5,
         },
     '50deg-take2.csv':
         {
-            'temp': 50,
+            'temp': 50+CEL_TO_KEL,
             'temp_error': 0.5,
         },
     '62deg':
         {
-            'temp': 62,
+            'temp': 62+CEL_TO_KEL,
             'temp_error': 0.5,
         },
     '67deg.csv':
         {
-            'temp': 67,
+            'temp': 67+CEL_TO_KEL,
             'temp_error': 0.5,
         },
     '57 deg.csv':
         {
-            'temp': 57,
+            'temp': 57+CEL_TO_KEL,
             'temp_error': 0.5,
         },
     '43 deg.csv':
         {
-            'temp': 43,
+            'temp': 43+CEL_TO_KEL,
             'temp_error': 0.5,
         },
     '48.0.csv':
         {
-            'temp': 48,
+            'temp': 48+CEL_TO_KEL,
             'temp_error': 0.5,
         },
     '57deg-take2.csv':
         {
-            'temp': 57,
+            'temp': 57+CEL_TO_KEL,
             'temp_error': 0.5,
         },
     '62deg.csv':
         {
-            'temp': 62,
+            'temp': 62+CEL_TO_KEL,
             'temp_error': 0.5,
         },
 
@@ -245,12 +245,25 @@ def append_table3(part_sum, table3_path, particle_size=0):
         std_err_inverse = get_std_err_inverse_normalize(c,std_err,radius_err,radius)
         c = c/radius
     else:
-        std_err_inverse = get_std_err_inverse(c,std_err)
+        std_err_inverse = get_function_err_inverse(c, std_err)
+
     theory_val, theory_err = theoretical_model.get_estimated_inverse_slope(
         part_sum.iloc[0].temp, part_sum.iloc[0].temp_error, part_sum.iloc[0].visc,
         part_sum.iloc[0].visc_error, radius, radius_err)
 
-    df = pd.DataFrame([[particle, 1/c, s, radius,radius_err, std_err_inverse, theory_err, theory_val,
+    if IS_WEEK3:
+        theory_val, theory_err = theoretical_model.get_estimated_slope(
+            part_sum.iloc[0].temp, part_sum.iloc[0].temp_error, part_sum.iloc[0].visc,
+            part_sum.iloc[0].visc_error, radius, radius_err)
+
+        df = pd.DataFrame([[particle, c, s, radius, radius_err, std_err, theory_err, theory_val,
+                            first_row.visc, first_row.visc_error, first_row.temp, first_row.temp_error,
+                            first_row.video]],
+                          columns=['particle', 'coef_inverse', 'score', 'radius', 'radius_err', 'std_err',
+                                   'theory_err', 'theory_val',
+                                   'visc', 'visc_error', 'temp', 'temp_error', 'video'])
+    else:
+        df = pd.DataFrame([[particle, 1/c, s, radius,radius_err, std_err_inverse, theory_err, theory_val,
                         first_row.visc, first_row.visc_error,first_row.temp,first_row.temp_error,
                         first_row.video]],
                       columns=['particle', 'coef_inverse', 'score', 'radius','radius_err', 'std_err',
@@ -265,11 +278,14 @@ def append_table3(part_sum, table3_path, particle_size=0):
             df.to_csv(f)
 
 
+def get_std_err_normalize(coef,std_err,radius_err,radius):
+    return((radius*std_err)**2*(radius_err*coef)**2)**0.5
+
 def get_std_err_inverse_normalize(coef,std_err,radius_err,radius):
     return ((radius*coef)**-2)*(std_err**2+radius_err**2)**0.5
 
 
-def get_std_err_inverse(coef,std_err):
+def get_function_err_inverse(coef, std_err):
     return (coef**-2)*std_err
 
 
@@ -310,6 +326,35 @@ def get_regression_table2(part_sum):
     # return regr.coef_[0], regr.score(x, y), stderr
 
 
+def get_regression_table3_week2(table3_path):
+    """
+    per particle:
+    creates linear regression for r_sq vs t,
+    plots graph
+    returns coeff and r^2 score and stderr
+    :param part_sum: dataframe with r_sq, time_gap columns
+    :return: coeff: array size 1, score: int
+    """
+    df = pd.read_csv(table3_path)
+    mod = smf.ols(formula='coef_inverse ~ visc - 1', data=df)
+    res = mod.fit()
+    return res.params[0], res.rsquared, res.bse[0]
+    # return regr.coef_[0], regr.score(x, y), stderr
+
+def get_regression_table3_week3(table3_path):
+    """
+    per particle:
+    creates linear regression for r_sq vs t,
+    plots graph
+    returns coeff and r^2 score and stderr
+    :param part_sum: dataframe with r_sq, time_gap columns
+    :return: coeff: array size 1, score: int
+    """
+    df = pd.read_csv(table3_path)
+    mod = smf.ols(formula='coef_inverse ~ temp - 1', data=df)
+    res = mod.fit()
+    return res.params[0], res.rsquared, res.bse[0]
+    # return regr.coef_[0], regr.score(x, y), stderr
 
 def fit_table3(table3_path):
     """
@@ -352,7 +397,7 @@ def add_environment_variables(data, filepath):
     """
     file_dict = dict()
     filename = os.path.basename(filepath)
-    assert(filename in ENVIRONMENT_VARIABLES.keys()), 'error - can"t find {} in dict '.format(filename)
+    # assert(filename in ENVIRONMENT_VARIABLES.keys()), 'error - can"t find {} in dict '.format(filename)
     if filename in ENVIRONMENT_VARIABLES.keys():
         file_dict = ENVIRONMENT_VARIABLES[filename]
     for varname in DEFAULT_ENV_VARIABLES.keys():
@@ -388,19 +433,38 @@ def get_data(raw_data_path, part_select_dict):
 
 def plot_table_3(table3_path):
     df = pd.read_csv(table3_path)
-    plt.errorbar(df.temp, df.coef_inverse, df.std_err, xerr=df.temp_error, fmt="o", capsize=4)
+    plt.errorbar(df.temp, df.coef_inverse, df.std_err, xerr=df.visc_error, fmt="o", capsize=4)
     # plt.xlabel('radius in micron')
     # plt.ylabel('coef_inverse = (3*pi*eta*r)/(2*k*T) in micron squared per sec')
 
-    plt.errorbar(df.temp,df.theory_val/df.radius,df.theory_err, xerr=df.temp_error, fmt="o", capsize=4)
+    plt.errorbar(df.temp,df.theory_val/df.radius,df.theory_err, xerr=df.visc_error, fmt="o", capsize=4)
     plt.ylabel('theory_val = (3*pi*eta*r)/(2*k*T) in micron squared per sec')
     plt.show()
 
 
+def get_n_sigma_week2(table3_path):
+    df = pd.read_csv(table3_path)
+    first_row = df.iloc[0]
+    fit_slope, s, fit_err = get_regression_table3_week2(table3_path)
+    theory_slope = first_row.theory_val / first_row.visc
+    # theory_err = ((first_row.theory_err/first_row.visc)**2*(theory_slope*(first_row.visc_error/10000)/(first_row.visc**2))**2)**0.5
+    theory_err = first_row.theory_err
+    return abs(fit_slope-theory_slope)/(theory_err+fit_err)
+
+def get_n_sigma_week3(table3_path):
+    df = pd.read_csv(table3_path)
+    first_row = df.iloc[0]
+    fit_slope, s, fit_err = get_regression_table3_week3(table3_path)
+    theory_slope = first_row.theory_val / first_row.temp
+    theory_err = ((first_row.theory_err/first_row.temp)**2*(theory_slope*(first_row.temp_error)/(first_row.temp**2))**2)**0.5
+    # theory_err = first_row.theory_err
+    return abs(fit_slope-theory_slope)/(theory_err+fit_err)
+
 NORMALIZE_COEF = True
+IS_WEEK3 = False
 RAW_DATA_PATH = 'data/3.csv'
 TABLE2_PATH = '100%water.table2.csv'
-TABLE3_PATH = 'table3_week3.csv'
+TABLE3_PATH = 'table3_week1.csv'
 SELECTION_DIRPATH = './selected_particles'
 
 if __name__ == '__main__':
@@ -419,4 +483,6 @@ if __name__ == '__main__':
     fill_table3_from_data_dir('data',d,TABLE3_PATH)
 
     plot_table_3(TABLE3_PATH)
-    # print(get_chi_sq(TABLE3_PATH))
+    # # print(get_chi_sq(TABLE3_PATH))
+    # print("c, s, std_err{}".format(get_regression_table3_week3(TABLE3_PATH)))
+    # print(get_n_sigma_week3(TABLE3_PATH))

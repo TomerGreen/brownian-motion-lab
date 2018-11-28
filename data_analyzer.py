@@ -10,7 +10,7 @@ import theoretical_model as tm
 import os
 
 
-MAX_TIME_GAP = 50
+MAX_TIME_GAP = 15
 MIN_TRACK_LENGTH = 50
 MAX_PIXELS_BW_FRAMES = 5
 TRACKING_MEMORY = 3
