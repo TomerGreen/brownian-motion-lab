@@ -115,6 +115,8 @@ def filter_particles_and_add_actual_size(data, data_filename, select_part_dict):
     # except ValueError:
     #     pass
     # Ignores data files that are not in the selection dict.
+    assert (data_filename in select_part_dict.keys()), \
+        'Error {}  data_filename is not in the selection dictionary.'.format(data_filename)
     if data_filename not in select_part_dict.keys():
         result = data
         print("Warning: file " + data_filename
