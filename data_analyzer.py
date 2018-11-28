@@ -189,10 +189,10 @@ def get_mean_residual_by_time_frame(data, cut_quantile):
     top_quant_col_name = 'quantile_' + str(1-cut_quantile)
     bottom_quant_col_name = 'quantile_' + str(cut_quantile)
     print(data.head())
-    data[bottom_quant_col_name] = data.groupby('time_gap')['residual'].transform(lambda x: x.quantile(cut_quantile))
-    data[top_quant_col_name] = data.groupby('time_gap')['residual'].transform(lambda x: x.quantile(1-cut_quantile))
+    data[bottom_quant_col_name] = data.groupby('time_gap')['relative_residual'].transform(lambda x: x.quantile(cut_quantile))
+    data[top_quant_col_name] = data.groupby('time_gap')['relative_residual'].transform(lambda x: x.quantile(1-cut_quantile))
     print(data.shape)
-    data = data[(data['residual'] <= data[top_quant_col_name]) & (data['residual'] >= data[bottom_quant_col_name])]
+    data = data[(data['relative_residual'] <= data[top_quant_col_name]) & (data['relative_residual'] >= data[bottom_quant_col_name])]
     print(data.shape)
     res_by_time = data.groupby('time_gap', as_index=False).agg(np.mean)
     return res_by_time
@@ -246,8 +246,9 @@ def add_residuals_to_particle_summary(part_sum):
 
     lin_coeff = mmain.get_regression_table2(part_sum)[0]
     part_sum['residual'] = part_sum['r_sq'] - part_sum['time_gap'] * lin_coeff
+    part_sum['relative_residual'] = part_sum['residual']/part_sum['r_sq']
 
-    # plt.bar(part_sum['time_gap'], part_sum['residual'])  # (tm.PIXEL_LENGTH_IN_MICRONS**2)
+    # plt.bar(part_sum['time_gap'], part_sum['residual'], width=0.8)  # (tm.PIXEL_LENGTH_IN_MICRONS**2)
     # plt.suptitle("Particle residual from linear fit by time")
     # plt.xlabel("Time (s)")
     # plt.ylabel("<r^2> (10^-12 m^2)")
@@ -283,9 +284,9 @@ if __name__ == '__main__':
     data = get_distance_sq_data_from_dir('data', sel_dict)
     print(data.head())
     #r_sq_data = get_distance_sq_data_from_dir('data', sel_dict)
-    res_data = get_mean_residual_by_time_frame(data, 0.1)
-    plt.bar(res_data['time_gap'], res_data['residual']) #(tm.PIXEL_LENGTH_IN_MICRONS**2)
-    plt.suptitle("Average residual for video by time")
+    res_data = get_mean_residual_by_time_frame(data, 0.05)
+    plt.bar(res_data['time_gap'], res_data['relative_residual'], width=0.08)
+    plt.suptitle("Average relative residual by time across all videos - with drift")
     plt.xlabel("Time (s)")
-    plt.ylabel("<r^2> (10^-12 m^2)")
+    plt.ylabel("Relative residual (no units)")
     plt.show()
