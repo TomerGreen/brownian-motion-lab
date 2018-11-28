@@ -44,6 +44,6 @@ def select_particles(data, vid_name, frame_zero_path, sel_data_dirname):
         plt.show()
 
 if __name__ == '__main__':
-    VIDNAME = '95%glys_10%part90%sol2'
-    data = main.get_data('data/' + VIDNAME + '.csv')
+    VIDNAME = '9'
+    data = main.get_data('data/' + VIDNAME + '.csv', {})
     select_particles(data, VIDNAME, 'videos/' + VIDNAME + '/frame1.jpg', PARTICLE_SELECTION_DATA_DIRNAME)

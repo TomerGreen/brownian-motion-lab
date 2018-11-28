@@ -127,7 +127,7 @@ def fill_table3_from_data_dir(data_dirname, part_select_dict, table3_path):
     For data files with non-default viscosity and temperature, these need to be changed in the ENVIRONMENT_VARIABLES
     dictionary.
     """
-    # This is summarized data (video, particle, r^sq, t, radius, temp etc.) from an entire directory
+    # This is summarized data (video, particle, r_sq, t, radius, temp etc.) from an entire directory
     data = get_distance_sq_data_from_dir(data_dirname, part_select_dict)
     for video in data['video'].unique():
         vid_data = data.loc[data['video'] == video]
@@ -271,8 +271,8 @@ def get_data(raw_data_path, part_select_dict):
     data = tp.link_df(data, analyzer.MAX_PIXELS_BW_FRAMES, memory=analyzer.TRACKING_MEMORY)
     print(str(len(data.particle.unique())) + " initial trajectories")
     data = tp.filter_stubs(data, analyzer.MIN_TRACK_LENGTH)
-    print(str(len(data.particle.unique())) + " trajectories span at least " + str(MIN_TRACK_LENGTH) + " frames" )
-    data = filter_particles_and_add_actual_size(data, data_filename, part_select_dict)
+    print(str(len(data.particle.unique())) + " trajectories span at least " + str(analyzer.MIN_TRACK_LENGTH) + " frames" )
+    data = analyzer.filter_particles_and_add_actual_size(data, data_filename, part_select_dict)
     print(str(len(data.particle.unique())) + " selected particles left")
     drift = tp.compute_drift(data)
     data = tp.subtract_drift(data, drift)
