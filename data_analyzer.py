@@ -108,13 +108,15 @@ def filter_particles_and_add_actual_size(data, data_filename, select_part_dict):
     """
     result = pd.DataFrame()
     data['actual_size'] = data['size']
-    data_filename = os.path.splitext(os.path.basename(data_filename))[0]
-    # Handles numerical names that were butchered by format transformation.
-    try:
-        data_filename = str(float(data_filename))
-    except ValueError:
-        pass
+    data_filename = os.path.basename(data_filename)
+    # # Handles numerical names that were butchered by format transformation.
+    # try:
+    #     data_filename = str(float(data_filename))
+    # except ValueError:
+    #     pass
     # Ignores data files that are not in the selection dict.
+    assert (data_filename in select_part_dict.keys()), \
+        'Error {}  data_filename is not in the selection dictionary.'.format(data_filename)
     if data_filename not in select_part_dict.keys():
         result = data
         print("Warning: file " + data_filename

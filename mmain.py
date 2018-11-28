@@ -35,15 +35,25 @@ ENVIRONMENT_VARIABLES = {
             'visc': 0.138,
             'visc_error': 0.11,
         },
-    '85%glys_30%part90%sol1.csv':
+    '85%glys_30%part70%sol.csv':
         {
             'visc': 0.0134,
             'visc_error': 0.0051,
         },
-    '85%glys_30%part90%sol2.csv':
+    '85%glys_30%part70%sol2.csv':
         {
             'visc': 0.0134,
             'visc_error': 0.0051,
+        },
+    '75%glys_10%part90%sol1.csv':
+        {
+            'visc': 0.10163,
+            'visc_error': 0.04941,
+        },
+    '75%glys_10%part90%sol2.csv':
+        {
+            'visc': 0.10163,
+            'visc_error': 0.04941,
         },
     '60%glys_10%part90%sol1.csv':
         {
@@ -69,25 +79,30 @@ ENVIRONMENT_VARIABLES = {
             'visc_error': 0.0003559
             ,
         },
+    '20%glys_10%part90%sol1.csv':
+        {
+            'visc': 0.0016941,
+            'visc_error': 0.0000638
+            ,
+        },
     '20%glys_10%part90%sol2.csv':
         {
             'visc': 0.0016941,
             'visc_error': 0.0000638
             ,
         },
-    'b.csv':
-        {
-            'visc': 0.1,
-        },
-    'c.csv':
-        {
-            'temp': 300
-        },
     '100%water.csv':
         {
             'temp': 296,    #23 deg. celcius
             'temp_error': 1,
             'visc': 0.00093505,      #100% water at 23 deg celcius
+            'visc_error': 0.00001
+        },
+    '100%water2.csv':
+        {
+            'temp': 296,  # 23 deg. celcius
+            'temp_error': 1,
+            'visc': 0.00093505,  # 100% water at 23 deg celcius
             'visc_error': 0.00001
         },
     '40deg-take2.csv':
@@ -110,12 +125,12 @@ ENVIRONMENT_VARIABLES = {
             'temp': 38,
             'temp_error': 0.5,
         },
-    '52.csv':
+    '52.0.csv':
         {
             'temp': 52,
             'temp_error': 0.5,
         },
-    '27.9.csv':
+    '27.9 deg.csv':
         {
             'temp': 27.9,
             'temp_error': 0.5,
@@ -143,6 +158,11 @@ ENVIRONMENT_VARIABLES = {
     '43 deg.csv':
         {
             'temp': 43,
+            'temp_error': 0.5,
+        },
+    '48.0.csv':
+        {
+            'temp': 48,
             'temp_error': 0.5,
         },
     '57deg-take2.csv':
@@ -221,16 +241,21 @@ def append_table3(part_sum, table3_path, particle_size=0):
 
     # write data to table_3
     c, s, std_err = get_regression_table2(part_sum)
-    std_err_inverse = get_std_err_inverse(c,std_err)
+    if NORMALIZE_COEF:
+        std_err_inverse = get_std_err_inverse_normalize(c,std_err,radius_err,radius)
+        c = c/radius
+    else:
+        std_err_inverse = get_std_err_inverse(c,std_err)
     theory_val, theory_err = theoretical_model.get_estimated_inverse_slope(
         part_sum.iloc[0].temp, part_sum.iloc[0].temp_error, part_sum.iloc[0].visc,
         part_sum.iloc[0].visc_error, radius, radius_err)
 
     df = pd.DataFrame([[particle, 1/c, s, radius,radius_err, std_err_inverse, theory_err, theory_val,
-                        first_row.visc, first_row.visc_error,first_row.temp,first_row.temp_error]],
+                        first_row.visc, first_row.visc_error,first_row.temp,first_row.temp_error,
+                        first_row.video]],
                       columns=['particle', 'coef_inverse', 'score', 'radius','radius_err', 'std_err',
                                'theory_err', 'theory_val',
-                               'visc','visc_error','temp','temp_error'])
+                               'visc','visc_error','temp','temp_error','video'])
     # sum_file = '100%water.table3.csv'
     if os.path.isfile(table3_path):
         with open(table3_path, 'a') as f:
@@ -238,6 +263,10 @@ def append_table3(part_sum, table3_path, particle_size=0):
     else:
         with open(table3_path, 'a') as f:
             df.to_csv(f)
+
+
+def get_std_err_inverse_normalize(coef,std_err,radius_err,radius):
+    return ((radius*coef)**-2)*(std_err**2+radius_err**2)**0.5
 
 
 def get_std_err_inverse(coef,std_err):
@@ -323,6 +352,7 @@ def add_environment_variables(data, filepath):
     """
     file_dict = dict()
     filename = os.path.basename(filepath)
+    assert(filename in ENVIRONMENT_VARIABLES.keys()), 'error - can"t find {} in dict '.format(filename)
     if filename in ENVIRONMENT_VARIABLES.keys():
         file_dict = ENVIRONMENT_VARIABLES[filename]
     for varname in DEFAULT_ENV_VARIABLES.keys():
@@ -356,22 +386,22 @@ def get_data(raw_data_path, part_select_dict):
     return data
 
 
-RAW_DATA_PATH = 'data/3.csv'
-TABLE2_PATH = '100%water.table2.csv'
-TABLE3_PATH = 'table3_week2.csv'
-SELECTION_DIRPATH = './selected_particles'
-
-
 def plot_table_3(table3_path):
     df = pd.read_csv(table3_path)
-    plt.errorbar(df.radius, 10*df.coef_inverse, 10*df.std_err, xerr=df.radius_err, fmt="o", capsize=4)
+    plt.errorbar(df.temp, df.coef_inverse, df.std_err, xerr=df.temp_error, fmt="o", capsize=4)
     # plt.xlabel('radius in micron')
     # plt.ylabel('coef_inverse = (3*pi*eta*r)/(2*k*T) in micron squared per sec')
 
-
-    plt.errorbar(df.radius,df.theory_val,df.theory_err, xerr=df.radius_err, fmt="o", capsize=4)
+    plt.errorbar(df.temp,df.theory_val/df.radius,df.theory_err, xerr=df.temp_error, fmt="o", capsize=4)
     plt.ylabel('theory_val = (3*pi*eta*r)/(2*k*T) in micron squared per sec')
     plt.show()
+
+
+NORMALIZE_COEF = True
+RAW_DATA_PATH = 'data/3.csv'
+TABLE2_PATH = '100%water.table2.csv'
+TABLE3_PATH = 'table3_week3.csv'
+SELECTION_DIRPATH = './selected_particles'
 
 if __name__ == '__main__':
 
@@ -385,8 +415,8 @@ if __name__ == '__main__':
     #             append_table3(data, p, TABLE3_PATH)
     #             print(get_chi_sq(TABLE3_PATH))
 
-    # d = analyzer.get_selected_particles_dict('./selected_particles')
-    # fill_table3_from_data_dir('data',d,TABLE3_PATH)
+    d = analyzer.get_selected_particles_dict('./selected_particles')
+    fill_table3_from_data_dir('data',d,TABLE3_PATH)
 
     plot_table_3(TABLE3_PATH)
-    print(get_chi_sq(TABLE3_PATH))
+    # print(get_chi_sq(TABLE3_PATH))
