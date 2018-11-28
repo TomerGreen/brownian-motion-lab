@@ -433,11 +433,11 @@ def get_data(raw_data_path, part_select_dict):
 
 def plot_table_3(table3_path):
     df = pd.read_csv(table3_path)
-    plt.errorbar(df.temp, df.coef_inverse, df.std_err, xerr=df.visc_error, fmt="o", capsize=4)
+    plt.errorbar(df.radius, df.coef_inverse, df.std_err, xerr=df.radius_err, fmt="o", capsize=4)
     # plt.xlabel('radius in micron')
     # plt.ylabel('coef_inverse = (3*pi*eta*r)/(2*k*T) in micron squared per sec')
 
-    plt.errorbar(df.temp,df.theory_val/df.radius,df.theory_err, xerr=df.visc_error, fmt="o", capsize=4)
+    plt.errorbar(df.radius,df.theory_val/df.radius,df.theory_err, xerr=df.radius_err, fmt="o", capsize=4)
     plt.ylabel('theory_val = (3*pi*eta*r)/(2*k*T) in micron squared per sec')
     plt.show()
 
@@ -460,7 +460,7 @@ def get_n_sigma_week3(table3_path):
     # theory_err = first_row.theory_err
     return abs(fit_slope-theory_slope)/(theory_err+fit_err)
 
-NORMALIZE_COEF = True
+NORMALIZE_COEF = False
 IS_WEEK3 = False
 RAW_DATA_PATH = 'data/3.csv'
 TABLE2_PATH = '100%water.table2.csv'
@@ -479,8 +479,8 @@ if __name__ == '__main__':
     #             append_table3(data, p, TABLE3_PATH)
     #             print(get_chi_sq(TABLE3_PATH))
 
-    d = analyzer.get_selected_particles_dict('./selected_particles')
-    fill_table3_from_data_dir('data',d,TABLE3_PATH)
+    # d = analyzer.get_selected_particles_dict('./selected_particles')
+    # fill_table3_from_data_dir('data',d,TABLE3_PATH)
 
     plot_table_3(TABLE3_PATH)
     # # print(get_chi_sq(TABLE3_PATH))
