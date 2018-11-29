@@ -1,0 +1,677 @@
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 508
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+The Effect of Particle Size and Medium Viscosity and Temperature on the
+ Time Dependence of Brownian Motion
+\end_layout
+
+\begin_layout Author
+Guy Pelc and Tomer Greenberg
+\end_layout
+
+\begin_layout Abstract
+We examined the effect of particle size, liquid temperature and liquid viscosity
+ on the motion of small particles in a viscouous liquid under a random force.
+ We have shown that the relation between the square of a particle's from
+ its initial location can be described as linearly dependent on time, given
+ appropriate treatment of the overall drift of individual layers of the
+ liquid.
+\end_layout
+
+\begin_layout Section*
+Introduction and Theoretical Background
+\end_layout
+
+\begin_layout Standard
+Brownian motion is the movement of small particles due to collisions with
+ individual molecules when submergred in a liquid.
+ Its properties have been used to describe a wide range of systems operating
+ under random forces, from intercellular transportation of organic molecules
+ to the motion of stars in a galaxy.
+ Apart from being one of the first scientific evidence in history suggesting
+ the discrete nature of matter, it is also closely connected with the concept
+ of diffusion, which has overreaching implications on the study of transform
+ phenomena, such as osmosis in biological systems.
+ The accurate description of Brownian motion influences major technologies
+ in the engineering of metals, pharmaceutical products and semiconductors.
+\end_layout
+
+\begin_layout Standard
+The theory of Brownian Motion regards small particles in a uniform liquid
+ as moving under a force that is random in time and is independent of location.
+ It is also assumed that the force from collisions with individual molecules
+ is small compared to the damping viscuous force, which means we can use
+ Stoke's Law.
+ In one dimension, this leads to an equation of motion of the type:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+m\frac{dv}{dt}=-6\pi\eta av+F_{random}(t)
+\end{equation}
+
+\end_inset
+
+where 
+\begin_inset Formula $v$
+\end_inset
+
+ is the velocity in one dimension, 
+\begin_inset Formula $\eta$
+\end_inset
+
+ is the viscosity constant and 
+\begin_inset Formula $a$
+\end_inset
+
+ is the particle's radius.
+ Because of the random force, the only meaninful description would be that
+ of the average location and velocity of a particle undergoing brownian
+ motion.
+ Taking the average of equation 
+\begin_inset Formula $(1)$
+\end_inset
+
+, together with the equipartition theorem which relates particles' mean
+ velocity in each dimension to the temperature, we can obtain the following
+ formula, which relates the motion of the particle in two dimensions to
+ the temperature:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+m\frac{d^{2}<r^{2}>}{dt^{2}}+6\pi\eta a\frac{d<r^{2}>}{dt}=4kT
+\end{equation}
+
+\end_inset
+
+Where 
+\begin_inset Formula $T$
+\end_inset
+
+ is temperature, 
+\begin_inset Formula $k$
+\end_inset
+
+ is the Boltzman constant, and 
+\begin_inset Formula $<r^{2}>$
+\end_inset
+
+ is the mean distance-squared of the particle from the origin.
+ In two dimensions, this can be solved to obtain the following formula,
+ which relates a spherical particle's distance from its original location
+ to the time from the beginning of the motion:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+<r^{2}>=\frac{2kT}{3\pi\eta a}t
+\end{equation}
+
+\end_inset
+
+Where 
+\begin_inset Formula $<r^{2}>$
+\end_inset
+
+ is the mean distance-squared in two dimensions from the particle's location
+ at 
+\begin_inset Formula $t=0$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Our goal in the experiment was to verify formula 
+\begin_inset Formula $(3)$
+\end_inset
+
+ empirically.
+ This consists of demonstrating a linear relation between 
+\begin_inset Formula $<r^{2}>$
+\end_inset
+
+ and time for individual particles, and by observing the motion of particles
+ with various sizes, in solutions with various viscosities and under various
+ temperatures, to validate that the linear coefficient fits the theoretical
+ value.
+\end_layout
+
+\begin_layout Section*
+Experiment Setup and Measurement Technique
+\end_layout
+
+\begin_layout Standard
+Our goal in the experiment was to verify formula (1) by observing the motion
+ of particles with various sizes, in solutions with various viscosities
+ and under various temperatures.
+ In each measurement cycle, we used a droplet of a solution of water and
+ glycerol, mixed with a smaller droplet of water which contains plastic
+ spheres with typical radii between 2 and 10 
+\begin_inset Formula $\mu m$
+\end_inset
+
+.
+ We will from now on call these spheres the 
+\begin_inset Quotes eld
+\end_inset
+
+particles
+\begin_inset Quotes erd
+\end_inset
+
+.
+ Every such mixture is characterized by a certain viscosity, which we calculated
+ by looking up the resulting proportion of water and glycerol in literature
+ tables.
+ Each droplet of mixure was placed under a microscope using a level to prevent
+ the effect of gravitational force on two-dimensional motion.
+ In measurements where we varied the temperature, we heated the base on
+ which the droplet was placed using an electric heater pad.
+ In other cases, the room temperature was measured.
+ We then focused the microscope on a set of particles in an area of 
+\begin_inset Formula $\thicksim1.3mm^{2}$
+\end_inset
+
+ and took a video of that area.
+ Across all measurements, we obtained 38 such videos, taken over between
+ 1 and 2 minutes.
+\end_layout
+
+\begin_layout Section*
+Data Analysis
+\end_layout
+
+\begin_layout Standard
+We then used the Python object detection library 
+\begin_inset Quotes eld
+\end_inset
+
+trackpy
+\begin_inset Quotes erd
+\end_inset
+
+ to obtain a raw data set for each with the particle's 
+\begin_inset Formula $x$
+\end_inset
+
+ and 
+\begin_inset Formula $y$
+\end_inset
+
+coordinates at each time 
+\begin_inset Formula $t$
+\end_inset
+
+.
+ This enabled us to automatically filter particles with strange trajectories,
+ and then manually select particles and measure their correct radius.
+ Particles were initially selected according to the following criteria:
+\end_layout
+
+\begin_layout Enumerate
+The particle must have a roughly spherical shape, so that Stoke's Law will
+ be applicable.
+\end_layout
+
+\begin_layout Enumerate
+The tracking algorithm must be able to track the particle over at least
+ 100 nearly-consequtive frames, or 5 seconds, under strict limitations on
+ tracking accuracy.
+\end_layout
+
+\begin_layout Enumerate
+The particle must stay in focus for the majority of the length of the video.
+ This implies that the particle stayed roughly in the same layer of liquid
+ throughout the video, and therefore is unlikely to have drifted under changing
+ current in the liquid.
+ It also means that we were able to measure the particle's radius accurately.
+\end_layout
+
+\begin_layout Enumerate
+The track of the particle must be roughly a straight line.
+ Some particles, for example, were close to the edge of the droplet, and
+ were affected by streams generated by its surface tension.
+\end_layout
+
+\begin_layout Standard
+In general, in order to obtain a statistically valid measurement for 
+\begin_inset Formula $<r^{2}>$
+\end_inset
+
+ after a certain time 
+\begin_inset Formula $\Delta t$
+\end_inset
+
+, we would have to perform the same measurement for identical particles
+ several times, and average their 
+\begin_inset Formula $r^{2}$
+\end_inset
+
+ after 
+\begin_inset Formula $\Delta t$
+\end_inset
+
+ time from the beginning of their motion.
+ However, since the particle is moving under forces that are random in time
+ and independent of location, this is equivalent to measuring the 
+\begin_inset Formula $r^{2}$
+\end_inset
+
+ for the same particle during non-overlapping intervals of 
+\begin_inset Formula $\Delta t$
+\end_inset
+
+, and taking the average of 
+\begin_inset Formula $r^{2}$
+\end_inset
+
+ across the intervals.
+ This means that for each particle, the number of samples decreases inversly
+ with the interval size.
+ However, since we are only interested in an accurate linear fit for each
+ particle, and since the frequency of particle collisions under brownian
+ motion is much higher than the number of frames per second in our videos,
+ we chose to limit the size of time intervals to 1.5 seconds, so we can ensure
+ each measurement averages over at least 6 intervals, and that every linear
+ fit is over 15 data points.
+ From now onward throughout the report, we will regard 
+\begin_inset Formula $<r^{2}>(t)$
+\end_inset
+
+ for a certain particle as the average squared distance over time intervals
+ of size 
+\begin_inset Formula $t$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+We now needed to isolate the effect of Brownian motion on the particle's
+ trajectory, and cancel other factors that might influence it.
+ We first eliminated the effect of drift caused by movement of liquid in
+ the droplet.
+ Since layers of liquid in the droplet travel in different velocities, and
+ since the particles we selected from a certain video might be positioned
+ in different layers, we needed to treat each particle individually, rather
+ than eliminating the average drift of all particles in the video.
+ We did this by first assuming that the particle's drift is constant throughout
+ the motion.
+ If it isn't, then the particle was under net force other than that caused
+ by collision with molecules, and its data is useless.
+ We treated these cases separately, as described in a following section.
+ To counter the effect of a particle's drift, we calculated the its mean
+ velocity throughout its trajectory 
+\begin_inset Formula $\overline{v}$
+\end_inset
+
+, and subtracted 
+\begin_inset Formula $\overline{v}t$
+\end_inset
+
+ from each data point.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename /Users/tomerg/Documents/Screenshots/video_with_drift_sample.png
+	lyxscale 50
+	scale 50
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
+status open
+
+\begin_layout Plain Layout
+Figure 1 - Particle trajectories in one video without constant drift elimination
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename /Users/tomerg/Documents/Screenshots/video_without_drift_sample.png
+	lyxscale 50
+	scale 50
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
+status open
+
+\begin_layout Plain Layout
+Figure 2 - Particle trajectory in one video with constant drift elimination
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename with_drift_sample.png
+	lyxscale 50
+	scale 50
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
+status open
+
+\begin_layout Plain Layout
+Figure 3 - <r^2> by time data for one particle with constant drift.
+ The relation is clearly non-linear.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\SpecialChar ligaturebreak
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename file_5_6th_particle.png
+	lyxscale 50
+	scale 50
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
+status open
+
+\begin_layout Plain Layout
+Figure 4 - <r^2> by time data for one particle after eliminating constant
+ drift
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We then needed to regard for forces that might have been unaccounted for.
+ These include gravitational force along the measurement plane as a result
+ of the microscope plate being slightly unlevel, or the particle moving
+ perpendicular to the measurement plane and therefore under non-constant
+ drift.
+ Since this type of motion is not strictly brownian, we had to be able to
+ detect it and filter out these particles completely.
+ We did this by automatically filtering out particles by the quality of
+ the linear fit for their 
+\begin_inset Formula $<r^{2}>(t)$
+\end_inset
+
+ data, and by examining the residuals from a linear fit.
+ Since the residuals of individual particles are often not very informative,
+ we looked at the mean residual across all particles for an entire video.
+ If the mean residual by time for a video is not randomly distributed like
+ a around 0, it might indicate gravitational force from an unlevel microscope
+ plate, or non-constant drift currents caused by the droplet sticking to
+ the edge of the plate.
+ This kind of analysis is especially helpful in our case since these forces
+ are still small in comparison to the viscuous force in the liquid, so they
+ might only slightly skew the linear relation between 
+\begin_inset Formula $<r^{2}>(t)$
+\end_inset
+
+, but they are easily detectable if the residuals are clearly time-dependent.
+ What we found is that in almost all videos, the average residuals are positive
+ for small time intervals and decreasing for larger ones, until they are
+ slightly negtaive.
+ While these residuals are comparatively small on average (from 10% to -3%
+ of actual 
+\begin_inset Formula $<r^{2}>$
+\end_inset
+
+ values), they appear consistently across videos.
+ Of course, looking at these residuals without our drift elimination reflects
+ the convex trend we see for drifting particles, but after eliminating drift,
+ we were not able to counter the slightly concave trend of 
+\begin_inset Formula $<r^{2}>(t)$
+\end_inset
+
+ that these residuals imply.
+ Our best hypothesis is that they are the result of jittering of the tracking
+ algorithm's positioning of the particles, and the rounding of the displacement
+ to an integer number of pixels, both of which take effect mainly over shorter
+ periods when the actual motion is miniscule - typically, a displacement
+ of 3 pixels per second.
+ To support this, we were able to steadily decrease the relative residuals
+ up to some point by fitting for longer time intervals.
+ However, we could not completely eliminate the possibility that this slight
+ concave arching of the generally-linear 
+\begin_inset Formula $<r^{2}>(t)$
+\end_inset
+
+ trend is the result of small net forces like the ones mentioned above,
+ when their effects are distorted by our drift elimination.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename /Users/tomerg/Documents/Screenshots/Average Residual by time.png
+	lyxscale 50
+	scale 50
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document

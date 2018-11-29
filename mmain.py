@@ -219,6 +219,7 @@ def fill_table3_from_data_dir(data_dirname, part_select_dict, table3_path):
     """
     # This is summarized data (video, particle, r^sq, t, radius, temp etc.) from an entire directory
     data = analyzer.get_distance_sq_data_from_dir(data_dirname, part_select_dict)
+    data = data[data['time_gap'] >= analyzer.MIN_TIME_GAP]
     for video in data['video'].unique():
         vid_data = data.loc[data['video'] == video]
         for particle in vid_data['particle'].unique():
@@ -434,14 +435,20 @@ def get_data(raw_data_path, part_select_dict):
     data_filename = os.path.splitext(os.path.basename(raw_data_path))[0]
     data = pd.read_csv(raw_data_path)
     data = tp.link_df(data, analyzer.MAX_PIXELS_BW_FRAMES, memory=analyzer.TRACKING_MEMORY)
-    print(str(len(data.particle.unique())) + " initial trajectories")
+    print(str(len(data.particle.unique())) + " initial trajectories in " + raw_data_path)
     data = tp.filter_stubs(data, analyzer.MIN_TRACK_LENGTH)
     print(str(len(data.particle.unique())) + " trajectories span at least " + str(analyzer.MIN_TRACK_LENGTH) + " frames" )
     data = analyzer.filter_particles_and_add_actual_size(data, data_filename, part_select_dict)
     print(str(len(data.particle.unique())) + " selected particles left")
-    drift = tp.compute_drift(data)
-    data = tp.subtract_drift(data, drift)
+    # drift = tp.compute_drift(data)
+    # data = tp.subtract_drift(data, drift)
+    # Plotting trajectories after drift cancelling
+    # plt.figure().suptitle("Sample particle trajectories with drift")
+    # tp.plot_traj(data)
     data = analyzer.cancel_avg_velocity_drift(data)
+    # Plotting trajectories after drift cancelling
+    # plt.figure().suptitle("Sample particle trajectories without drift")
+    # tp.plot_traj(data)
     data = add_environment_variables(data, raw_data_path)
     return data
 
