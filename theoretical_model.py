@@ -36,6 +36,24 @@ def get_relative_error(temp, temp_err, visc, visc_err, rad, rad_error):
     return rel_error
 
 
+def get_theory_vals(temp, temp_err, visc, visc_err, rad, rad_error,week):
+    assert (week in [1,2,3]),'invalid week'
+    if week == 1:
+        theory_val = 3*const.pi*visc*rad/(2*const.k*temp*10**18)
+        theory_err =  theory_val* sqrt((temp_err / temp) ** 2 + (visc_err / visc) ** 2 + (rad_error / rad) ** 2)
+    elif week == 2:
+        #radius normalized
+        theory_val = 3*const.pi*visc/(2*const.k*temp*10**18)
+        theory_err= theory_val * sqrt((temp_err / temp) ** 2 + (visc_err / visc) ** 2)
+    else:
+        # week 3
+        #radius normalized
+        theory_val = (2 * const.k * temp*10**18) / (3 * const.pi * visc)
+        theory_err = theory_val * sqrt((temp_err / temp) ** 2 + (visc_err / visc) ** 2)
+
+    return theory_val, theory_err
+
+
 def get_estimated_inverse_slope(temp, temp_err, visc, visc_err, rad, rad_error):
     """
     Returns the inverse slope and its absolute error.

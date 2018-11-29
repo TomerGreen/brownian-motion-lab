@@ -247,29 +247,20 @@ def append_table3(part_sum, table3_path, particle_size=0):
         c = c/radius
     else:
         std_err_inverse = get_function_err_inverse(c, std_err)
+    if WEEK in [1,2]:
+        c = 1/c
 
-    theory_val, theory_err = theoretical_model.get_estimated_inverse_slope(
+    theory_val, theory_err = theoretical_model.get_theory_vals(
         part_sum.iloc[0].temp, part_sum.iloc[0].temp_error, part_sum.iloc[0].visc,
-        part_sum.iloc[0].visc_error, radius, radius_err)
+        part_sum.iloc[0].visc*VISC_ERR_PERCENT, radius, radius_err, WEEK)
 
-    if IS_WEEK3:
-        theory_val, theory_err = theoretical_model.get_estimated_slope(
-            part_sum.iloc[0].temp, part_sum.iloc[0].temp_error, part_sum.iloc[0].visc,
-            part_sum.iloc[0].visc_error, radius, radius_err)
-
-        df = pd.DataFrame([[particle, c, s, radius, radius_err, std_err, theory_err, theory_val,
-                            first_row.visc, first_row.visc_error, first_row.temp, first_row.temp_error,
-                            first_row.video]],
-                          columns=['particle', 'coef_inverse', 'score', 'radius', 'radius_err', 'std_err',
-                                   'theory_err', 'theory_val',
-                                   'visc', 'visc_error', 'temp', 'temp_error', 'video'])
-    else:
-        df = pd.DataFrame([[particle, 1/c, s, radius,radius_err, std_err_inverse, theory_err, theory_val,
-                        first_row.visc, first_row.visc_error,first_row.temp,first_row.temp_error,
+    df = pd.DataFrame([[particle, c, s, radius, radius_err, std_err, theory_err, theory_val,
+                        first_row.visc, first_row.visc*VISC_ERR_PERCENT, first_row.temp, first_row.temp_error,
                         first_row.video]],
-                      columns=['particle', 'coef_inverse', 'score', 'radius','radius_err', 'std_err',
+                      columns=['particle', 'coef_inverse', 'score', 'radius', 'radius_err', 'std_err',
                                'theory_err', 'theory_val',
-                               'visc','visc_error','temp','temp_error','video'])
+                               'visc', 'visc_error', 'temp', 'temp_error', 'video'])
+
     # sum_file = '100%water.table3.csv'
     if os.path.isfile(table3_path):
         with open(table3_path, 'a') as f:
@@ -492,30 +483,44 @@ def get_n_sigma_week1(table3_path,ind_var_str,ind_var_str_err):
     # theory_err = first_row.theory_err
     return abs(fit_slope - theory_slope) / (theory_err + fit_err)
 
-def print_statistics(table3_path, ind_var_str, week):
+
+def print_statistics(table3_path, ind_var_str,ind_var_str_err, week):
     df = pd.read_csv(table3_path)
     first_row = df.iloc[0]
     fit_slope, s, fit_err = get_regression_table3(table3_path,ind_var_str)
-    if week == 1:
-        theory_slope = first_row.theory_val / first_row.radius
-        theory_err = ((first_row.theory_err/first_row.radius)**2*(theory_slope*first_row.radius_err/(first_row.radius**2))**2)**0.5
-        # theory_err = first_row.theory_err
-    elif week ==2:
-        theory_slope = first_row.theory_val / first_row.visc
-        # theory_err = ((first_row.theory_err/first_row.visc)**2*(theory_slope*(first_row.visc_error/10000)/
-        # (first_row.visc**2))**2)**0.5
-        theory_err = first_row.theory_err
-    elif week ==3:
-        theory_slope = first_row.theory_val / first_row.temp
-        theory_err = ((first_row.theory_err / first_row.temp) ** 2 * (
-                    theory_slope * first_row.temp_error / (first_row.temp ** 2)) ** 2) ** 0.5
-        # theory_err = first_row.theory_err
-    else:
-        raise Exception('invalid week entered')
+
+    theory_slope = first_row.theory_val / first_row['{}'.format(ind_var_str)]
+    theory_err = theory_slope * ((first_row.theory_err / first_row.theory_val)**2 +
+                                 (first_row['{}'.format(ind_var_str_err)] / first_row['{}'.format(ind_var_str)])**2)**0.5
+    # if week == 1:
+    #     theory_slope = first_row.theory_val / first_row.radius
+    #     theory_err = ((first_row.theory_err/first_row.radius)**2*(theory_slope*first_row.radius_err/(first_row.radius**2))**2)**0.5
+    #     # theory_err = first_row.theory_err
+    # elif week ==2:
+    #     theory_slope = first_row.theory_val / first_row.visc
+    #     # theory_err = ((first_row.theory_err/first_row.visc)**2*(theory_slope*(first_row.visc_error/10000)/
+    #     # (first_row.visc**2))**2)**0.5
+    #     theory_err = first_row.theory_err
+    # elif week ==3:
+    #     theory_slope = first_row.theory_val / first_row.temp
+    #     theory_err = ((first_row.theory_err / first_row.temp) ** 2 * (
+    #                 theory_slope * first_row.temp_error / (first_row.temp ** 2)) ** 2) ** 0.5
+    #     # theory_err = first_row.theory_err
+    # else:
+    #     raise Exception('invalid week entered')
     n_sigma = abs(fit_slope-theory_slope)/(theory_err+fit_err)
     print('n_sigma: {}, r^2: {}, fit_slope: {}, fit_err: {}, theory_slope: {}, theory_err: {}'
           .format(n_sigma,s,fit_slope,fit_err,theory_slope,theory_err))
 
+
+def get_temp_from_slope_week2(slope):
+    val = 3 * const.pi * 10 ** -18 / (2 * const.k * slope)
+    return val
+
+
+def get_visc_from_slope_week3(slope):
+    val = 2*const.k/(3*const.pi*slope*10**-18)
+    return val
 
 NORMALIZE_COEF = False
 IS_WEEK3 = False
@@ -523,6 +528,9 @@ RAW_DATA_PATH = 'data/3.csv'
 TABLE2_PATH = '100%water.table2.csv'
 TABLE3_PATH = 'table3_week1v2.csv'
 SELECTION_DIRPATH = './selected_particles'
+VISC_ERR_PERCENT = None
+
+
 
 if __name__ == '__main__':
 
@@ -536,7 +544,10 @@ if __name__ == '__main__':
     #             append_table3(data, p, TABLE3_PATH)
     #             print(get_chi_sq(TABLE3_PATH))
 
-    WEEK = 2
+
+
+    VISC_ERR_PERCENT = 0.1
+    WEEK = 3
     if WEEK==1:
         IS_WEEK3 = False
         NORMALIZE_COEF = False
@@ -548,21 +559,22 @@ if __name__ == '__main__':
         NORMALIZE_COEF = True
         IND_VAR_STR = 'visc'
         IND_VAR_STR_ERR = 'visc_error'
-        TABLE3_PATH = 'table3_week2v1.csv'
+        TABLE3_PATH = 'table3_week2v3_filtered2.csv'
     elif WEEK == 3:
         IS_WEEK3 = False
         NORMALIZE_COEF = True
         IND_VAR_STR = 'temp'
         IND_VAR_STR_ERR = 'temp_error'
-        TABLE3_PATH = 'table3_week3v1.csv'
+        TABLE3_PATH = 'table3_week3v1_filter.csv'
     else:
         raise Exception('invalid week')
 
-    d = analyzer.get_selected_particles_dict('./selected_particles')
-    fill_table3_from_data_dir('data',d,TABLE3_PATH)
+    # d = analyzer.get_selected_particles_dict('./selected_particles')
+    # fill_table3_from_data_dir('data',d,TABLE3_PATH)
 
+    # plot_table_3(TABLE3_PATH, IND_VAR_STR, IND_VAR_STR_ERR)
+    #
+    # print_statistics(TABLE3_PATH, IND_VAR_STR, IND_VAR_STR_ERR,WEEK)
 
-    plot_table_3(TABLE3_PATH, IND_VAR_STR, IND_VAR_STR_ERR)
-    # # print(get_chi_sq(TABLE3_PATH))
-    # print("c, s, std_err{}".format(get_regression_table3_week3(TABLE3_PATH)))
-    print_statistics(TABLE3_PATH, IND_VAR_STR, WEEK)
+    # print(get_temp_from_slope_week2(1153)-273)
+    print(get_visc_from_slope_week3(0.00135))
