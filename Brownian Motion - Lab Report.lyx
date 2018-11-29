@@ -72,8 +72,8 @@
 \begin_body
 
 \begin_layout Title
-The Effect of Particle Size and Medium Viscosity and Temperature on the
- Time Dependence of Brownian Motion
+The Effect of Particle Size, Liquid Viscosity and Temperature on the Time
+ Dependence of Brownian Motion
 \end_layout
 
 \begin_layout Author
@@ -81,12 +81,13 @@ Guy Pelc and Tomer Greenberg
 \end_layout
 
 \begin_layout Abstract
-We examined the effect of particle size, liquid temperature and liquid viscosity
- on the motion of small particles in a viscouous liquid under a random force.
- We have shown that the relation between the square of a particle's from
- its initial location can be described as linearly dependent on time, given
- appropriate treatment of the overall drift of individual layers of the
- liquid.
+We examined how small particles move in a viscouous liquid under a random
+ force created by frequent collisions with molecules.
+ We have demonstrated that the relation between the square of a particle's
+ from its initial location, on average, can be described as linearly dependent
+ on time, given appropriate treatment of the overall drift of individual
+ layers of the liquid, and taking into account technical limitations such
+ as the number of pixels.
 \end_layout
 
 \begin_layout Section*
@@ -633,7 +634,7 @@ We then needed to regard for forces that might have been unaccounted for.
  What we found is that in almost all videos, the average residuals are positive
  for small time intervals and decreasing for larger ones, until they are
  slightly negtaive.
- While these residuals are comparatively small on average (from 10% to -3%
+ While these residuals are comparatively small on average (from 10% to -5%
  of actual 
 \begin_inset Formula $<r^{2}>$
 \end_inset
@@ -651,26 +652,210 @@ We then needed to regard for forces that might have been unaccounted for.
  to an integer number of pixels, both of which take effect mainly over shorter
  periods when the actual motion is miniscule - typically, a displacement
  of 3 pixels per second.
- To support this, we were able to steadily decrease the relative residuals
- up to some point by fitting for longer time intervals.
- However, we could not completely eliminate the possibility that this slight
+ To support this hypothesis, we were able to steadily decrease the relative
+ residuals up to some point by fitting for only longer time intervals.
+ However, we could not completely rule out the possibility that this slight
  concave arching of the generally-linear 
 \begin_inset Formula $<r^{2}>(t)$
 \end_inset
 
  trend is the result of small net forces like the ones mentioned above,
  when their effects are distorted by our drift elimination.
+ Viewing this, we decided to disregard time intervals smaller than 0.4 seconds,
+ so we would minimize the impact of this effect on the linear fit, while
+ still have 12 data points per particle for each fit.
 \end_layout
 
 \begin_layout Standard
 \begin_inset Graphics
 	filename /Users/tomerg/Documents/Screenshots/Average Residual by time.png
+	lyxscale 40
+	scale 40
+	BoundingBox 35bp 0bp 1254bp 948bp
+	clip
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
+status open
+
+\begin_layout Plain Layout
+Figure 5 - Relative residual (divided by actual value of 
+\begin_inset Formula $<r^{2}>$
+\end_inset
+
+) from linear fit by time, averaged for all particles.
+ Notice how the trend ceases to exist after ~0.8 seconds.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename /Users/tomerg/Documents/Screenshots/Residuals when only takin over 0.6 secs.png
+	lyxscale 40
+	scale 40
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
+status open
+
+\begin_layout Plain Layout
+Figure 6 - Same figure when only fitting for time intervals of between 0.6
+ and 1.5 seconds.
+ The concave trend is still present, but has been reduced in magnitude.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+After performing a linear fit in this manner on 161 particles, we were able
+ to reach an average 
+\begin_inset Formula $R^{2}$
+\end_inset
+
+ fitting value of 
+\begin_inset Formula $0.981$
+\end_inset
+
+, and conclude that we have validated a strong linear fit for 
+\begin_inset Formula $<r^{2}>(t)$
+\end_inset
+
+ for a single particle.
+\end_layout
+
+\begin_layout Standard
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Graphics
+	filename /Users/tomerg/Documents/Screenshots/Screen Shot 2018-11-29 at 3.38.32 PM.png
 	lyxscale 50
 	scale 50
 
 \end_inset
 
 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Box Frameless
+position "t"
+hor_pos "c"
+has_inner_box 1
+inner_pos "t"
+use_parbox 0
+use_makebox 0
+width "100col%"
+special "none"
+height "1in"
+height_special "totalheight"
+thickness "0.4pt"
+separation "3pt"
+shadowsize "4pt"
+framecolor "black"
+backgroundcolor "none"
+status open
+
+\begin_layout Plain Layout
+Figure 7 - a histogram of 
+\begin_inset Formula $R^{2}$
+\end_inset
+
+ values for 161 particles
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Once we had the slope for each linear fit, we could compare it to theoretical
+ values derived from 
+\begin_inset Formula $<r^{2}>=\frac{2kT}{3\pi\eta}t$
+\end_inset
+
+.....
+ (Now your part)
 \end_layout
 
 \end_body

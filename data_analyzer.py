@@ -178,6 +178,17 @@ def get_distance_sq_data_from_file(datafile, select_part_dict):
     return r_sq_data
 
 
+def get_fit_r_sq_hist(data):
+    fit_r_sq_per_part = data.groupby(['video', 'particle'], as_index=False).agg(np.mean)
+    print(fit_r_sq_per_part.head())
+    fit_r_sq_per_part = fit_r_sq_per_part[fit_r_sq_per_part['fit_r_sq'] > 0.85]['fit_r_sq']
+    plt.hist(fit_r_sq_per_part, width=0.003, bins=40)
+    print("Mean r^2 value for fitting " + str(fit_r_sq_per_part.shape[0]) + " particles: " + str(np.mean(fit_r_sq_per_part)))
+    plt.suptitle("R^2 Value Histogram After Fitting All Particles")
+    plt.xlabel("Linear Fit R^2 Value")
+    plt.show()
+
+
 def get_mean_residual_by_time_frame(data, cut_quantile):
     """
     Takes summarized data per particle and returns the residual averaged by particle, per time frame.
@@ -245,9 +256,12 @@ def add_residuals_to_particle_summary(part_sum):
 
     # ===== FOR LINEAR FIT USE THIS ===== #
 
-    lin_coeff = mmain.get_regression_table2(part_sum)[0]
+    lin_fit_res = mmain.get_regression_table2(part_sum)
+    lin_coeff = lin_fit_res[0]
+    rsquared = lin_fit_res[1]
     part_sum['residual'] = part_sum['r_sq'] - part_sum['time_gap'] * lin_coeff
     part_sum['relative_residual'] = part_sum['residual']/part_sum['r_sq']
+    part_sum['fit_r_sq'] = rsquared
 
     # plt.bar(part_sum['time_gap'], part_sum['residual'], width=0.8)  # (tm.PIXEL_LENGTH_IN_MICRONS**2)
     # plt.suptitle("Particle residual from linear fit by time")
@@ -295,11 +309,11 @@ def get_quad_fit(part_sum):
 if __name__ == '__main__':
     sel_dict = get_selected_particles_dict('./selected_particles')
     data = get_distance_sq_data_from_dir('data', sel_dict)
-    print(data.head())
+    get_fit_r_sq_hist(data)
     #r_sq_data = get_distance_sq_data_from_dir('data', sel_dict)
-    res_data = get_mean_residual_by_time_frame(data, 0.05)
-    plt.bar(res_data['time_gap'], res_data['relative_residual'], width=0.08)
-    plt.suptitle("Average relative residual by time - ignoring small time gaps")
-    plt.xlabel("Time (s)")
-    plt.ylabel("Relative residual (no units)")
-    plt.show()
+    # res_data = get_mean_residual_by_time_frame(data, 0.05)
+    # plt.bar(res_data['time_gap'], res_data['relative_residual'], width=0.08)
+    # plt.suptitle("Average relative residual by time - ignoring small time gaps")
+    # plt.xlabel("Time (s)")
+    # plt.ylabel("Relative residual (no units)")
+    # plt.show()
