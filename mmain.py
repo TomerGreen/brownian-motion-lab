@@ -444,15 +444,6 @@ def get_data(raw_data_path, part_select_dict):
     return data
 
 
-def plot_table_3(table3_path, ind_var, ind_var_err):
-    df = pd.read_csv(table3_path)
-    plt.errorbar(df['{}'.format(ind_var)], df.coef_inverse, df.std_err, xerr=df['{}'.format(ind_var_err)], fmt="o", capsize=4)
-    # plt.xlabel('radius in micron')
-    # plt.ylabel('coef_inverse = (3*pi*eta*r)/(2*k*T) in micron squared per sec')
-
-    plt.errorbar(df['{}'.format(ind_var)],df.theory_val,df.theory_err, xerr=df['{}'.format(ind_var_err)], fmt="o", capsize=4)
-    plt.ylabel('theory_val = (3*pi*eta*r)/(2*k*T) in micron squared per sec')
-    plt.show()
 
 
 def get_n_sigma_week2(table3_path):
@@ -522,6 +513,11 @@ def get_visc_from_slope_week3(slope):
     val = 2*const.k/(3*const.pi*slope*10**-18)
     return val
 
+
+def get_visc_from_slope_week1(slope,temp):
+    val = slope*2*const.k*temp/(10**-18*3*const.pi)
+    return val
+
 NORMALIZE_COEF = False
 IS_WEEK3 = False
 RAW_DATA_PATH = 'data/3.csv'
@@ -531,21 +527,21 @@ SELECTION_DIRPATH = './selected_particles'
 VISC_ERR_PERCENT = None
 
 
+def plot_table_3(table3_path, ind_var, ind_var_err):
+    df = pd.read_csv(table3_path)
+    plt.errorbar(df['{}'.format(ind_var)], df.coef_inverse, df.std_err, xerr=df['{}'.format(ind_var_err)], fmt="o",
+                 capsize=4)
+    plt.xlabel('Temperature (K)')
+    # plt.ylabel('coef_inverse = (3*pi*eta*r)/(2*k*T) in micron squared per sec')
+
+    plt.errorbar(df['{}'.format(ind_var)], df.theory_val, df.theory_err, xerr=df['{}'.format(ind_var_err)], fmt="o",
+                 capsize=4)
+    plt.ylabel('coef1,normalized (micron squared per second)')
+    plt.title('coef1,normalized vs temperature')
+    plt.show()
+
 
 if __name__ == '__main__':
-
-    # This can be replaced by a call to 'fill_table3..'
-    # sel_dict = get_selected_particles_dict(SELECTION_DIRPATH)
-    # particles = sel_dict['3.0']
-    # if len(particles)>0:
-    #     data = get_data(RAW_DATA_PATH)
-    #     for p in particles:
-    #         if p in data.particle.unique():
-    #             append_table3(data, p, TABLE3_PATH)
-    #             print(get_chi_sq(TABLE3_PATH))
-
-
-
     VISC_ERR_PERCENT = 0.1
     WEEK = 3
     if WEEK==1:
@@ -553,13 +549,13 @@ if __name__ == '__main__':
         NORMALIZE_COEF = False
         IND_VAR_STR = 'radius'
         IND_VAR_STR_ERR = 'radius_err'
-        TABLE3_PATH = 'table3_week1v3_filtered.csv'
+        TABLE3_PATH = 'table3_week1v3_BEST.csv'
     elif WEEK==2:
         IS_WEEK3 = False
         NORMALIZE_COEF = True
         IND_VAR_STR = 'visc'
         IND_VAR_STR_ERR = 'visc_error'
-        TABLE3_PATH = 'table3_week2v3_filtered2.csv'
+        TABLE3_PATH = 'table3_week2v3_filtered2 BEST.csv'
     elif WEEK == 3:
         IS_WEEK3 = False
         NORMALIZE_COEF = True
@@ -572,9 +568,10 @@ if __name__ == '__main__':
     # d = analyzer.get_selected_particles_dict('./selected_particles')
     # fill_table3_from_data_dir('data',d,TABLE3_PATH)
 
-    # plot_table_3(TABLE3_PATH, IND_VAR_STR, IND_VAR_STR_ERR)
-    #
-    # print_statistics(TABLE3_PATH, IND_VAR_STR, IND_VAR_STR_ERR,WEEK)
+    plot_table_3(TABLE3_PATH, IND_VAR_STR, IND_VAR_STR_ERR)
+    # #
+    print_statistics(TABLE3_PATH, IND_VAR_STR, IND_VAR_STR_ERR,WEEK)
 
     # print(get_temp_from_slope_week2(1153)-273)
-    print(get_visc_from_slope_week3(0.00135))
+    # print(get_visc_from_slope_week3(0.00135))
+    # print(get_visc_from_slope_week1(4.4053,296))
