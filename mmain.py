@@ -219,6 +219,7 @@ def fill_table3_from_data_dir(data_dirname, part_select_dict, table3_path):
     """
     # This is summarized data (video, particle, r^sq, t, radius, temp etc.) from an entire directory
     data = analyzer.get_distance_sq_data_from_dir(data_dirname, part_select_dict)
+    data = data[data['time_gap'] >= analyzer.MIN_TIME_GAP]
     for video in data['video'].unique():
         vid_data = data.loc[data['video'] == video]
         for particle in vid_data['particle'].unique():

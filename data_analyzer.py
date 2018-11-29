@@ -10,6 +10,7 @@ import theoretical_model as tm
 import os
 
 
+MIN_TIME_GAP = 0.4
 MAX_TIME_GAP = 15
 MIN_TRACK_LENGTH = 50
 MAX_PIXELS_BW_FRAMES = 5
@@ -255,27 +256,39 @@ def add_residuals_to_particle_summary(part_sum):
     # plt.show()
 
 
-    # ===== FOR LINEAR AND EXPONENTIAL FIT USE THIS ===== #
+    # ===== FOR NON LINEAR FIT USE THIS ===== #
 
-    #params = get_linear_plus_exp_fit(part_sum)
-    #print(params)
-    #part_sum['residual'] = part_sum['r_sq'] - part_sum['time_gap'].apply(lin_plus_exp_fit_function,
-    #                                                                    args=(params[0], params[1], params[2]))
+    # params = get_lin_fit(part_sum)
+    # print(params)
+    # part_sum['residual'] = part_sum['r_sq'] - part_sum['time_gap'].apply(lin_fit_function,
+    #                                                                     args=(params[0],))
+    # part_sum['relative_residual'] = part_sum['residual'] / part_sum['r_sq']
 
     return part_sum
 
 
-def linear_fit_function(t, coeff):
-    return t * coeff
+def lin_fit_function(t, a):
+    return  a * t
+
+def get_lin_fit(part_sum):
+    params, covariance = opt.curve_fit(square_fit_function, part_sum['time_gap'], part_sum['r_sq'], maxfev=1500)
+    return params
+
+def square_fit_function(t, a, b):
+    return a * t + b * (t**2)
 
 
-def lin_plus_exp_fit_function(t, m, c, a):
-    expression = m * t + (c / a) * (1 - np.exp(-a * t))
-    return expression
+def get_square_fit(part_sum):
+    params, covariance = opt.curve_fit(square_fit_function, part_sum['time_gap'], part_sum['r_sq'], maxfev=1500)
+    return params
 
 
-def get_linear_plus_exp_fit(part_sum):
-    params, covariance = opt.curve_fit(lin_plus_exp_fit_function, part_sum['time_gap'], part_sum['r_sq'], maxfev=1500)
+def quad_fit_function(t, a, b, c, d):
+    return a * t + b * (t**2) + c * (t**3) + d * (t**4)
+
+
+def get_quad_fit(part_sum):
+    params, covariance = opt.curve_fit(quad_fit_function, part_sum['time_gap'], part_sum['r_sq'], maxfev=1500)
     return params
 
 
@@ -286,7 +299,7 @@ if __name__ == '__main__':
     #r_sq_data = get_distance_sq_data_from_dir('data', sel_dict)
     res_data = get_mean_residual_by_time_frame(data, 0.05)
     plt.bar(res_data['time_gap'], res_data['relative_residual'], width=0.08)
-    plt.suptitle("Average relative residual by time across all videos - with drift")
+    plt.suptitle("Average relative residual by time - ignoring small time gaps")
     plt.xlabel("Time (s)")
     plt.ylabel("Relative residual (no units)")
     plt.show()
