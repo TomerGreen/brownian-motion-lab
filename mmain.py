@@ -492,13 +492,13 @@ def get_n_sigma_week1(table3_path,ind_var_str,ind_var_str_err):
     # theory_err = first_row.theory_err
     return abs(fit_slope - theory_slope) / (theory_err + fit_err)
 
-def get_n_sigma(table3_path,ind_var_str,week):
+def print_statistics(table3_path, ind_var_str, week):
     df = pd.read_csv(table3_path)
     first_row = df.iloc[0]
     fit_slope, s, fit_err = get_regression_table3(table3_path,ind_var_str)
     if week == 1:
-        theory_slope = first_row.theory_val / first_row.temp
-        theory_err = ((first_row.theory_err/first_row.temp)**2*(theory_slope*first_row.temp_error/(first_row.temp**2))**2)**0.5
+        theory_slope = first_row.theory_val / first_row.radius
+        theory_err = ((first_row.theory_err/first_row.radius)**2*(theory_slope*first_row.radius_err/(first_row.radius**2))**2)**0.5
         # theory_err = first_row.theory_err
     elif week ==2:
         theory_slope = first_row.theory_val / first_row.visc
@@ -512,7 +512,11 @@ def get_n_sigma(table3_path,ind_var_str,week):
         # theory_err = first_row.theory_err
     else:
         raise Exception('invalid week entered')
-    return abs(fit_slope-theory_slope)/(theory_err+fit_err)
+    n_sigma = abs(fit_slope-theory_slope)/(theory_err+fit_err)
+    print('n_sigma: {}, r^2: {}, fit_slope: {}, fit_err: {}, theory_slope: {}, theory_err: {}'
+          .format(n_sigma,s,fit_slope,fit_err,theory_slope,theory_err))
+
+
 NORMALIZE_COEF = False
 IS_WEEK3 = False
 RAW_DATA_PATH = 'data/3.csv'
@@ -532,13 +536,33 @@ if __name__ == '__main__':
     #             append_table3(data, p, TABLE3_PATH)
     #             print(get_chi_sq(TABLE3_PATH))
 
+    WEEK = 2
+    if WEEK==1:
+        IS_WEEK3 = False
+        NORMALIZE_COEF = False
+        IND_VAR_STR = 'radius'
+        IND_VAR_STR_ERR = 'radius_err'
+        TABLE3_PATH = 'table3_week1v3_filtered.csv'
+    elif WEEK==2:
+        IS_WEEK3 = False
+        NORMALIZE_COEF = True
+        IND_VAR_STR = 'visc'
+        IND_VAR_STR_ERR = 'visc_error'
+        TABLE3_PATH = 'table3_week2v1.csv'
+    elif WEEK == 3:
+        IS_WEEK3 = False
+        NORMALIZE_COEF = True
+        IND_VAR_STR = 'temp'
+        IND_VAR_STR_ERR = 'temp_error'
+        TABLE3_PATH = 'table3_week3v1.csv'
+    else:
+        raise Exception('invalid week')
+
     d = analyzer.get_selected_particles_dict('./selected_particles')
     fill_table3_from_data_dir('data',d,TABLE3_PATH)
 
-    IS_WEEK3 = False
-    NORMALIZE_COEF = False
-    TABLE3_PATH = 'table3_week1v2.csv'
-    plot_table_3(TABLE3_PATH,'radius','radius_err')
+
+    plot_table_3(TABLE3_PATH, IND_VAR_STR, IND_VAR_STR_ERR)
     # # print(get_chi_sq(TABLE3_PATH))
     # print("c, s, std_err{}".format(get_regression_table3_week3(TABLE3_PATH)))
-    print(get_n_sigma(TABLE3_PATH,'radius',1))
+    print_statistics(TABLE3_PATH, IND_VAR_STR, WEEK)
