@@ -632,16 +632,29 @@ We then needed to regard for forces that might have been unaccounted for.
 , but they are easily detectable if the residuals are clearly time-dependent.
  What we found is that in almost all videos, the average residuals are positive
  for small time intervals and decreasing for larger ones, until they are
- negative.
- While the residuals are comparatively small (from 8% to -5% of actual 
+ most negative for the largest intervals.
+ While these residuals are comparatively small on average (from 8% to -5%
+ of actual 
 \begin_inset Formula $<r^{2}>$
 \end_inset
 
- values, they appear across most videos.
- Our hypothesis is that they are the result of small constant forces, like
- the ones mentioned above, when the drift elimination is taken into account
- and over-compensates smaller time intervals more strongly than larger ones.
- This suggestion is supported by how..
+ values), they appear consistently across videos.
+ Of course, looking at these residuals without our drift elimination reflects
+ the convex trend we see for individual particles, but we were not able
+ to counter the slightly coclave trend that these residuals suggest.
+ Our best hypothesis is that they are the result of jittering of the tracking
+ algorithm's positioning of the particles, and the rounding of the displacement
+ to an integer number of pixels, both of which take effect mainly over shorter
+ periods when the actual motion is miniscule.
+ To support this, we were able to steadily decrease the relative residuals
+ up to some point by fitting for longer time intervals.
+ However, we could not completely eliminate the possibility that this slight
+ concave arching of the generally-linear 
+\begin_inset Formula $<r^{2}>(t)$
+\end_inset
+
+ trend is the result of small net forces like the ones mentioned above,
+ when their effects are distorted by our drift elimination.
 \end_layout
 
 \end_body
