@@ -356,7 +356,7 @@ def get_regression_table3_week3(table3_path):
     return res.params[0], res.rsquared, res.bse[0]
     # return regr.coef_[0], regr.score(x, y), stderr
 
-def get_regression_table3_week1(table3_path):
+def get_regression_table3(table3_path,ind_var_str):
     """
     per particle:
     creates linear regression for r_sq vs t,
@@ -366,7 +366,7 @@ def get_regression_table3_week1(table3_path):
     :return: coeff: array size 1, score: int
     """
     df = pd.read_csv(table3_path)
-    mod = smf.ols(formula='coef_inverse ~ radius - 1', data=df)
+    mod = smf.ols(formula='coef_inverse ~ {} - 1'.format(ind_var_str), data=df)
     res = mod.fit()
     return res.params[0], res.rsquared, res.bse[0]
     # return regr.coef_[0], regr.score(x, y), stderr
@@ -446,13 +446,13 @@ def get_data(raw_data_path, part_select_dict):
     return data
 
 
-def plot_table_3(table3_path):
+def plot_table_3(table3_path, ind_var, ind_var_err):
     df = pd.read_csv(table3_path)
-    plt.errorbar(df.radius, 10*df.coef_inverse, df.std_err, xerr=df.radius_err, fmt="o", capsize=4)
+    plt.errorbar(df['{}'.format(ind_var)], df.coef_inverse, df.std_err, xerr=df['{}'.format(ind_var_err)], fmt="o", capsize=4)
     # plt.xlabel('radius in micron')
     # plt.ylabel('coef_inverse = (3*pi*eta*r)/(2*k*T) in micron squared per sec')
 
-    plt.errorbar(df.radius,df.theory_val,df.theory_err, xerr=df.radius_err, fmt="o", capsize=4)
+    plt.errorbar(df['{}'.format(ind_var)],df.theory_val,df.theory_err, xerr=df['{}'.format(ind_var_err)], fmt="o", capsize=4)
     plt.ylabel('theory_val = (3*pi*eta*r)/(2*k*T) in micron squared per sec')
     plt.show()
 
@@ -475,21 +475,42 @@ def get_n_sigma_week3(table3_path):
     # theory_err = first_row.theory_err
     return abs(fit_slope-theory_slope)/(theory_err+fit_err)
 
-def get_n_sigma_week1(table3_path):
+def get_n_sigma_week1(table3_path,ind_var_str,ind_var_str_err):
     df = pd.read_csv(table3_path)
     first_row = df.iloc[0]
-    fit_slope, s, fit_err = get_regression_table3_week1(table3_path)
-    theory_slope = first_row.theory_val / first_row.radius
-    theory_err = ((first_row.theory_err / first_row.radius) ** 2 * (
-                theory_slope * (first_row.radius_err) / (first_row.radius ** 2)) ** 2) ** 0.5
+    fit_slope, s, fit_err = get_regression_table3(table3_path,ind_var_str)
+    theory_slope = first_row.theory_val / first_row['{}'.format(ind_var_str)]
+    theory_err = ((first_row.theory_err / first_row['{}'.format(ind_var_str)]) ** 2 * (
+                theory_slope * (first_row['{}'.format(ind_var_str_err)]) / (first_row['{}'.format(ind_var_str)]** 2)) ** 2) ** 0.5
     # theory_err = first_row.theory_err
     return abs(fit_slope - theory_slope) / (theory_err + fit_err)
 
+def get_n_sigma(table3_path,ind_var_str,week):
+    df = pd.read_csv(table3_path)
+    first_row = df.iloc[0]
+    fit_slope, s, fit_err = get_regression_table3(table3_path,ind_var_str)
+    if week == 1:
+        theory_slope = first_row.theory_val / first_row.temp
+        theory_err = ((first_row.theory_err/first_row.temp)**2*(theory_slope*first_row.temp_error/(first_row.temp**2))**2)**0.5
+        # theory_err = first_row.theory_err
+    elif week ==2:
+        theory_slope = first_row.theory_val / first_row.visc
+        # theory_err = ((first_row.theory_err/first_row.visc)**2*(theory_slope*(first_row.visc_error/10000)/
+        # (first_row.visc**2))**2)**0.5
+        theory_err = first_row.theory_err
+    elif week ==3:
+        theory_slope = first_row.theory_val / first_row.temp
+        theory_err = ((first_row.theory_err / first_row.temp) ** 2 * (
+                    theory_slope * first_row.temp_error / (first_row.temp ** 2)) ** 2) ** 0.5
+        # theory_err = first_row.theory_err
+    else:
+        raise Exception('invalid week entered')
+    return abs(fit_slope-theory_slope)/(theory_err+fit_err)
 NORMALIZE_COEF = False
 IS_WEEK3 = False
 RAW_DATA_PATH = 'data/3.csv'
 TABLE2_PATH = '100%water.table2.csv'
-TABLE3_PATH = 'table3_week3.csv'
+TABLE3_PATH = 'table3_week1v2.csv'
 SELECTION_DIRPATH = './selected_particles'
 
 if __name__ == '__main__':
@@ -504,10 +525,13 @@ if __name__ == '__main__':
     #             append_table3(data, p, TABLE3_PATH)
     #             print(get_chi_sq(TABLE3_PATH))
 
-    # d = analyzer.get_selected_particles_dict('./selected_particles')
-    # fill_table3_from_data_dir('data',d,TABLE3_PATH)
+    d = analyzer.get_selected_particles_dict('./selected_particles')
+    fill_table3_from_data_dir('data',d,TABLE3_PATH)
 
-    # plot_table_3(TABLE3_PATH)
+    IS_WEEK3 = False
+    NORMALIZE_COEF = False
+    TABLE3_PATH = 'table3_week1v2.csv'
+    plot_table_3(TABLE3_PATH,'radius','radius_err')
     # # print(get_chi_sq(TABLE3_PATH))
     # print("c, s, std_err{}".format(get_regression_table3_week3(TABLE3_PATH)))
-    print(get_n_sigma_week3(TABLE3_PATH))
+    print(get_n_sigma(TABLE3_PATH,'radius',1))

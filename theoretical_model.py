@@ -2,7 +2,7 @@ import scipy.constants as const
 from math import sqrt
 
 
-PIXEL_LENGTH_IN_MICRONS = 0.3756
+MICRONS_PER_PIXEL = 350/2359
 PIXEL_LENGTH_ERROR = 0.003
 SECONDS_PER_FRAME = 0.1
 RELATIVE_PIXEL_NUM_ERROR = 0.1  # If this is 0.1, then a size of 12 pixels will have an error of 1.2 pixels.

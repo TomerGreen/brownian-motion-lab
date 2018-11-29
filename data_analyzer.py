@@ -206,8 +206,8 @@ def get_particle_sq_distance_data(part_data):
         return row['x'] ** 2 + row['y'] ** 2
 
     part_num = int(part_data.iloc[0]['particle'])
-    part_rad = part_data['actual_size'].mean() * tm.PIXEL_LENGTH_IN_MICRONS
-    rad_error = np.sqrt(tm.RELATIVE_PIXEL_NUM_ERROR ** 2 + (tm.PIXEL_LENGTH_ERROR / tm.PIXEL_LENGTH_IN_MICRONS) ** 2) * part_rad
+    part_rad = part_data['actual_size'].mean() * tm.MICRONS_PER_PIXEL
+    rad_error = np.sqrt(tm.RELATIVE_PIXEL_NUM_ERROR ** 2 + (tm.PIXEL_LENGTH_ERROR / tm.MICRONS_PER_PIXEL) ** 2) * part_rad
     result = pd.DataFrame(columns=['time_gap', 'r_sq'])
     for gap in range(1, MAX_TIME_GAP+1):
         gap_data = part_data.iloc[::gap, :]    # the x,y position of every nth row.
@@ -218,7 +218,7 @@ def get_particle_sq_distance_data(part_data):
         result = result.append({'time_gap': gap, 'r_sq': mean_distance_sq}, ignore_index=True)
         result = result.dropna()
     result['time_gap'] = result['time_gap'] * tm.SECONDS_PER_FRAME
-    result['r_sq'] = result['r_sq'] * (tm.PIXEL_LENGTH_IN_MICRONS ** 2)
+    result['r_sq'] = result['r_sq'] * (tm.MICRONS_PER_PIXEL ** 2)
     result['particle'] = part_num
     result['radius'] = part_rad     # These are already in microns.
     result['radius_error'] = rad_error
